@@ -132,7 +132,6 @@
         .menu-btn { background-color: #34495e; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 18px; cursor: pointer; }
         .title-area h1 { font-size: 24px; color: #3498db; }
         
-        /* Botões de Login Customizados */
         .auth-block { margin-top: 8px; }
         .btn-google-login { background: #fff; color: #444; border: 1px solid #ddd; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; }
         .btn-google-login:hover { background: #f5f5f5; }
@@ -391,8 +390,8 @@
             <div class="form-col">
                 <label>Frequência / Rotina</label>
                 <select class="select-field" id="task-frequency">
-                    <option value="unica">Tarefa Única</option>
-                    <option value="diaria">🔁 Hábito Diário</option>
+                    <option value="Pontual">Tarefa Única</option>
+                    <option value="Fixa">🔁 Hábito Diário</option>
                 </select>
             </div>
         </div>
@@ -440,7 +439,6 @@
     </section>
 
     <script>
-        // --- CHAVES DO PROJETO REAL (JA-AGENDA) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAdyGKfXLfms4f5eUnRjXfQlJ8kD4L7fEI",
             authDomain: "ja-agenda.firebaseapp.com",
@@ -491,7 +489,6 @@
             });
         });
 
-        /* --- CONEXÃO FIREBASE --- */
         function loginComGoogle() {
             const { signInWithPopup, GoogleAuthProvider } = window.fbModules;
             const provider = new GoogleAuthProvider();
@@ -579,7 +576,6 @@
             }, 1000);
         }
 
-        /* --- FOTO DE FUNDO SIDEBAR --- */
         function carregarImagemFundoArquivo(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
@@ -613,7 +609,6 @@
             }
         }
 
-        /* --- ADESIVOS --- */
         function montarCatalogoEmojis() {
             const target = document.getElementById('sticker-box-target');
             let emojis = [];
@@ -672,7 +667,6 @@
             }
         }
 
-        /* --- NOTES POPUP MODAL --- */
         function abrirModuloNotas() {
             document.getElementById('notes-modal').classList.add('active');
             toggleMenu();
@@ -753,17 +747,16 @@
             renderizarListaDeNotasModulo();
         }
 
-        /* --- PROCESSAMENTO DE TAREFAS --- */
         function prepararEdicaoTarefa(id) {
             const tarefa = listaDeTarefas.find(t => t.id === id); if (!tarefa) return;
             idTarefaEmEdicao = id;
             
-            document.getElementById('task-name').value = tarefa.nome;
-            document.getElementById('task-frequency').value = tarefa.frequencia;
-            document.getElementById('task-category').value = tarefa.categoria;
-            document.getElementById('task-icon').value = tarefa.icone;
+            document.getElementById('task-name').value = tarefa.titulo;
+            document.getElementById('task-frequency').value = tarefa.tipo;
+            document.getElementById('task-category').value = tarefa.categoria || "azul";
+            document.getElementById('task-icon').value = tarefa.icone || "fa-circle-check";
             document.getElementById('task-date-input').value = tarefa.data;
-            document.getElementById('task-time').value = tarefa.horario;
+            document.getElementById('task-time').value = tarefa.hora;
             
             if (tarefa.subtarefas && tarefa.subtarefas.length > 0) {
                 document.getElementById('task-subtasks').value = tarefa.subtarefas.map(s => s.texto).join(', ');
@@ -786,9 +779,9 @@
             if (idTarefaEmEdicao !== null) {
                 listaDeTarefas = listaDeTarefas.map(t => { 
                     if (t.id === idTarefaEmEdicao) { 
-                        t.nome = nome; t.frequencia = document.getElementById('task-frequency').value; 
+                        t.titulo = nome; t.tipo = document.getElementById('task-frequency').value; 
                         t.categoria = document.getElementById('task-category').value; t.icone = document.getElementById('task-icon').value; 
-                        t.data = document.getElementById('task-date-input').value; t.horario = document.getElementById('task-time').value; 
+                        t.data = document.getElementById('task-date-input').value; t.hora = document.getElementById('task-time').value; 
                         t.subtarefas = subtarefasFiltradas; 
                     } return t; 
                 });
@@ -796,7 +789,7 @@
                 const btnSubmit = document.getElementById('btn-submit-task'); btnSubmit.textContent = "Adicionar na Agenda (+XP)"; btnSubmit.classList.remove('btn-edit-mode');
                 document.getElementById('form-action-title').innerHTML = `<i class="fa-solid fa-plus"></i> Painel de Agendamento Inteligente`;
             } else {
-                listaDeTarefas.push({ id: Date.now(), nome: nome, frequencia: document.getElementById('task-frequency').value, categoria: document.getElementById('task-category').value, icone: document.getElementById('task-icon').value, data: document.getElementById('task-date-input').value, horario: document.getElementById('task-time').value || "Sem hora", concluida: false, subtarefas: subtarefasFiltradas });
+                listaDeTarefas.push({ id: Date.now(), titulo: nome, tipo: document.getElementById('task-frequency').value, categoria: document.getElementById('task-category').value, icone: document.getElementById('task-icon').value, data: document.getElementById('task-date-input').value, hora: document.getElementById('task-time').value || "Sem hora", concluida: false, subtarefas: subtarefasFiltradas });
                 adicionarXP(15);
             }
             nameInput.value = ""; subInput.value = ""; 
@@ -807,8 +800,8 @@
 
         function exportarParaExcel() {
             if (listaDeTarefas.length === 0) { alert("Sem tarefas para exportar!"); return; }
-            const dados = listaDeTarefas.map(t => ({ "ID": t.id, "Tarefa": t.nome, "Frequência": t.frequencia, "Categoria": t.categoria, "Data": t.data, "Horário": t.horario, "Status": t.concluida ? 'Concluída' : 'Pendente' }));
-            const livro = XLSX.utils.book_new(); const planilha = XLSX.utils.json_to_sheet(dados); XLSX.utils.book_append_sheet(livro, planilha, "Tarefas"); XLSX.writeFile(livro, "agenda_produtiva.xlsx");
+            const dados = listaDeTarefas.map(t => ({ "ID": t.id, "Tarefa": t.titulo, "Frequência": t.tipo, "Categoria": t.categoria, "Data": t.data, "Horário": t.hora, "Status": t.concluida ? 'Concluída' : 'Pendente' }));
+            const libro = XLSX.utils.book_new(); const planilha = XLSX.utils.json_to_sheet(dados); XLSX.utils.book_append_sheet(livro, planilha, "Tarefas"); XLSX.writeFile(livro, "agenda_produtiva.xlsx");
         }
 
         function editarNomePomodoro() { const n = prompt("Nome da atividade:", pomoNomeCustomizado); if(n && n.trim()) { pomoNomeCustomizado = n.trim(); document.getElementById('pomo-label').innerHTML = `<i class="fa-solid fa-brain"></i> ${pomoNomeCustomizado}`; } }
@@ -819,11 +812,11 @@
         }
 
         function renderizarTarefas() {
-            const target = document.getElementById('tasks-list'); const currentFmt = formatarDataString(dataAtual); const filtradas = listaDeTarefas.filter(t => t.data === currentFmt || t.frequencia === 'diaria');
+            const target = document.getElementById('tasks-list'); const currentFmt = formatarDataString(dataAtual); const filtradas = listaDeTarefas.filter(t => t.data === currentFmt || t.tipo === 'Fixa');
             if (filtradas.length === 0) { target.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.6;">Nenhuma atividade agendada para hoje.</div>`; return; } target.innerHTML = "";
             filtradas.forEach(t => {
                 let subHtml = ""; if (t.subtarefas && t.subtarefas.length > 0) { subHtml = `<div class="subtasks-wrapper">` + t.subtarefas.map(s => `<div class="subtask-row ${s.concluida ? 'done' : ''}"><input type="checkbox" ${s.concluida ? 'checked' : ''} onclick="alternarSubtarefa(${t.id}, ${s.id})"> <span>${s.texto}</span></div>`).join('') + `</div>`; }
-                target.insertAdjacentHTML('beforeend', `<div class="task-item cor-${t.categoria} ${t.concluida ? 'completed' : ''}"><div class="task-top-wrapper"><div><button class="check-btn" onclick="alternarConclusaoTarefa(${t.id})"><i class="fa-solid fa-check"></i></button> <span class="task-title-text" style="font-weight:bold; margin-left:8px;"><i class="fa-solid ${t.icone}"></i> [${t.horario}] ${t.nome}</span></div><div class="task-actions-btns"><button class="btn-edit-task" onclick="prepararEdicaoTarefa(${t.id})"><i class="fa-solid fa-pen-to-square"></i></button><button style="background:none; border:none; color:#e74c3c; cursor:pointer;" onclick="moverParaLixeira(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>${subHtml}</div>`);
+                target.insertAdjacentHTML('beforeend', `<div class="task-item cor-${t.categoria || 'azul'} ${t.concluida ? 'completed' : ''}"><div class="task-top-wrapper"><div><button class="check-btn" onclick="alternarConclusaoTarefa(${t.id})"><i class="fa-solid fa-check"></i></button> <span class="task-title-text" style="font-weight:bold; margin-left:8px;"><i class="fa-solid ${t.icone || 'fa-circle-check'}"></i> [${t.hora}] ${t.titulo}</span></div><div class="task-actions-btns"><button class="btn-edit-task" onclick="prepararEdicaoTarefa(${t.id})"><i class="fa-solid fa-pen-to-square"></i></button><button style="background:none; border:none; color:#e74c3c; cursor:pointer;" onclick="moverParaLixeira(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>${subHtml}</div>`);
             });
         }
 
@@ -857,7 +850,7 @@
         async function restaurarTarefa(id) { const item = lixeiraDeTarefas.find(t => t.id === id); if (item) { listaDeTarefas.push(item); lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); } }
         async function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); renderizerLixeira(); await salvarDadosNaNuvem(); }
         
-        function renderizerLixeira() { const container = document.getElementById('trash-list-target'); document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length; if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; opacity:0.6;">Lixeira vazia.</div>`; return; } container.innerHTML = ""; lixeiraDeTarefas.forEach(t => { container.insertAdjacentHTML('beforeend', `<div class="trash-item" style="display:flex; justify-content:between; align-items:center;"><div><strong>${t.nome}</strong></div><div><button style="color:#2ecc71; background:none; border:none; margin-right:8px; cursor:pointer;" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button><button style="color:#e74c3c; background:none; border:none; cursor:pointer;" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>`); }); }
+        function renderizerLixeira() { const container = document.getElementById('trash-list-target'); document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length; if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; opacity:0.6;">Lixeira vazia.</div>`; return; } container.innerHTML = ""; lixeiraDeTarefas.forEach(t => { container.insertAdjacentHTML('beforeend', `<div class="trash-item" style="display:flex; justify-content:between; align-items:center;"><div><strong>${t.titulo}</strong></div><div><button style="color:#2ecc71; background:none; border:none; margin-right:8px; cursor:pointer;" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button><button style="color:#e74c3c; background:none; border:none; cursor:pointer;" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>`); }); }
         function atualizarEstatisticasMenu() { document.getElementById('stat-total').textContent = listaDeTarefas.length; let conc = listaDeTarefas.filter(t => t.concluida).length; document.getElementById('stat-concluidas').textContent = conc; document.getElementById('stat-pendentes').textContent = listaDeTarefas.length - conc; }
         
         function atualizarInterface() {
@@ -871,12 +864,12 @@
 
         function renderizarGradeSemana() {
             const grid = document.getElementById('week-grid-target'); grid.innerHTML = ""; let dInicio = new Date(dataAtual); dInicio.setDate(dInicio.getDate() - dInicio.getDay()); const shortDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-            for (let i = 0; i < 7; i++) { let dLoop = new Date(dInicio); dLoop.setDate(dInicio.getDate() + i); let sDia = formatarDataString(dLoop); let count = listaDeTarefas.filter(t => t.data === sDia || t.frequencia === 'diaria').length; grid.insertAdjacentHTML('beforeend', `<div class="week-day-card ${sDia === formatarDataString(dataAtual) ? 'selected' : ''}" onclick="selecionarDataDireta('${dLoop.toISOString()}')"><div><strong>${shortDays[i]}</strong></div><div>${dLoop.getDate()}</div>${count > 0 ? `<span style="background:#3498db; color:white; font-size:9px; padding:2px 4px; border-radius:8px;">${count}</span>` : ''}</div>`); }
+            for (let i = 0; i < 7; i++) { let dLoop = new Date(dInicio); dLoop.setDate(dInicio.getDate() + i); let sDia = formatarDataString(dLoop); let count = listaDeTarefas.filter(t => t.data === sDia || t.tipo === 'Fixa').length; grid.insertAdjacentHTML('beforeend', `<div class="week-day-card ${sDia === formatarDataString(dataAtual) ? 'selected' : ''}" onclick="selecionarDataDireta('${dLoop.toISOString()}')"><div><strong>${shortDays[i]}</strong></div><div>${dLoop.getDate()}</div>${count > 0 ? `<span style="background:#3498db; color:white; font-size:9px; padding:2px 4px; border-radius:8px;">${count}</span>` : ''}</div>`); }
         }
 
         function renderizarGradeMes() {
             const grid = document.getElementById('month-grid-target'); grid.innerHTML = ""; ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach(d => grid.insertAdjacentHTML('beforeend', `<div class="month-grid-header">${d}</div>`)); let pDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1); let dGrid = new Date(pDia); dGrid.setDate(dGrid.getDate() - pDia.getDay());
-            for (let k = 0; k < 35; k++) { let cell = new Date(dGrid); cell.setDate(dGrid.getDate() + k); let sDia = formatarDataString(cell); let count = listaDeTarefas.filter(t => t.data === sDia || t.frequencia === 'diaria').length; grid.insertAdjacentHTML('beforeend', `<div class="month-cell ${cell.getMonth() !== dataAtual.getMonth() ? 'other-month' : ''} ${sDia === formatarDataString(dataAtual) ? 'current-active' : ''}" onclick="selecionarDataDireta('${cell.toISOString()}')"><div><strong>${cell.getDate()}</strong></div><div>${count > 0 ? `<span class="month-task-indicator"></span>` : ''}</div></div>`); }
+            for (let k = 0; k < 35; k++) { let cell = new Date(dGrid); cell.setDate(dGrid.getDate() + k); let sDia = formatarDataString(cell); let count = listaDeTarefas.filter(t => t.data === sDia || t.tipo === 'Fixa').length; grid.insertAdjacentHTML('beforeend', `<div class="month-cell ${cell.getMonth() !== dataAtual.getMonth() ? 'other-month' : ''} ${sDia === formatarDataString(dataAtual) ? 'current-active' : ''}" onclick="selecionarDataDireta('${cell.toISOString()}')"><div><strong>${cell.getDate()}</strong></div><div>${count > 0 ? `<span class="month-task-indicator"></span>` : ''}</div></div>`); }
         }
 
         function exportarDados() { const backup = { tarefas: listaDeTarefas, lixeira: lixeiraDeTarefas, notas: listaDeNotas, xp: userXP, level: userLevel, stickers: listaDeStickers }; const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup)); const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "agenda_backup.json"); document.body.appendChild(a); a.click(); a.remove(); }
