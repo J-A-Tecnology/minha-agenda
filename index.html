@@ -6,7 +6,6 @@
     <title>Minha Agenda</title>
     
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -33,7 +32,7 @@
         .current-date { font-size: 18px; font-weight: bold; color: #2c3e50; }
 
         /* Formulário Verde */
-        .card-form { background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card-form { background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card-title { font-size: 16px; color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 13px; font-weight: bold; color: #7f8c8d; margin-bottom: 6px; }
@@ -41,11 +40,20 @@
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
         .form-col { flex: 1; min-width: 150px; }
         .select-field, .input-date, .input-time { width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 4px; background-color: #fff; font-size: 14px; height: 42px; }
-        .notify-box { display: flex; align-items: center; gap: 8px; background-color: #f1f2f6; padding: 10px 15px; border-radius: 4px; height: 42px; width: 100%; justify-content: center; font-size: 13px; font-weight: bold; color: #2c3e50; }
+        .notify-box { display: flex; align-items: center; gap: 8px; background-color: #f1f2f6; padding: 10px 15px; border-radius: 4px; height: 42px; width: 100%; justify-content: center; font-size: 13px; font-weight: bold; color: #2c3e50; cursor: pointer; }
         .btn-add { width: 100%; background-color: #2a9d8f; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         
-        .no-tasks { text-align: center; color: #95a5a6; font-size: 14px; margin-top: 25px; }
+        /* Container de Listagem */
+        .tasks-container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .no-tasks { text-align: center; color: #95a5a6; font-size: 14px; padding: 15px 0; }
         .day-label { font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; text-transform: uppercase; }
+
+        /* Estilo dos Cards de Tarefa Criados */
+        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #f8f9fa; border-left: 5px solid #3498db; border-radius: 4px; margin-bottom: 10px; }
+        .task-info { display: flex; flex-direction: column; gap: 4px; }
+        .task-title-text { font-weight: bold; color: #2c3e50; }
+        .task-time-text { font-size: 12px; color: #7f8c8d; }
+        .btn-delete { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -71,22 +79,21 @@
                          data-logo_alignment="left">
                     </div>
                 </div>
-
             </div>
         </div>
         
         <div class="clock-container">
             <div class="clock-time" id="live-clock">00:00:00</div>
-            <div class="clock-date">22/05/2026</div>
+            <div class="clock-date" id="live-date">22/05/2026</div>
         </div>
     </header>
 
-    <div class="day-label">Sexta-Feira</div>
+    <div class="day-label" id="day-of-week-label">Sexta-Feira</div>
 
     <section class="navigation-bar">
-        <button class="nav-btn"><i class="fa-solid fa-caret-left"></i> Voltar</button>
-        <span class="current-date">22/05/2026</span>
-        <button class="nav-btn">Avançar <i class="fa-solid fa-caret-right"></i></button>
+        <button class="nav-btn" onclick="alterarDia(-1)"><i class="fa-solid fa-caret-left"></i> Voltar</button>
+        <span class="current-date" id="display-date">22/05/2026</span>
+        <button class="nav-btn" onclick="alterarDia(1)">Avançar <i class="fa-solid fa-caret-right"></i></button>
     </section>
 
     <main class="card-form">
@@ -112,51 +119,146 @@
         <div class="form-row">
             <div class="form-col">
                 <label>Data</label>
-                <input type="text" class="input-date" value="22/05/2026" readonly>
+                <input type="text" class="input-date" id="task-date-input" value="22/05/2026" readonly>
             </div>
             <div class="form-col">
                 <label>Horário (Opcional)</label>
-                <input type="time" class="input-time" value="14:00">
+                <input type="time" class="input-time" id="task-time" value="14:00">
             </div>
             <div class="form-col" style="display: flex; align-items: flex-end;">
                 <label class="notify-box">
-                    <input type="checkbox"> 🔔 Notificar-me
+                    <input type="checkbox" id="task-notify"> 🔔 Notificar-me
                 </label>
             </div>
         </div>
         <button type="button" class="btn-add" onclick="salvarTarefa()">Adicionar na Agenda</button>
     </main>
 
-    <div class="no-tasks">Nenhuma tarefa marcada para este dia.</div>
+    <section class="tasks-container">
+        <h3 style="font-size: 15px; margin-bottom: 10px; color: #34495e;">Tarefas do Dia</h3>
+        <div id="tasks-list">
+            <div class="no-tasks">Nenhuma tarefa marcada para este dia.</div>
+        </div>
+    </section>
 
     <script>
+        // Data de controle da navegação do app (inicia com a data fixa do seu layout original)
+        let dataAtual = new Date(2026, 4, 22); // Note: meses no JS começam em 0 (4 = Maio)
+        
+        // Array global simulando banco de dados para guardar as tarefas
+        let listaDeTarefas = [];
+
         document.addEventListener('DOMContentLoaded', function () {
             startClock();
+            atualizarInterfaceData();
         });
 
-        // Função executada quando o usuário faz login
         function onSignIn(response) {
             const dataBase64 = response.credential.split('.')[1];
             const jsonString = window.atob(dataBase64);
             const usuario = JSON.parse(jsonString);
-            
-            // Exibe o alerta com o nome do usuário logado
             alert("Bem-vindo, " + usuario.name);
         }
 
+        // Relógio digital em tempo real
         function startClock() {
             setInterval(() => {
                 const now = new Date();
-                const timeString = now.toTimeString().split(' ')[0];
-                document.getElementById('live-clock').textContent = timeString;
+                document.getElementById('live-clock').textContent = now.toTimeString().split(' ')[0];
+                
+                // Atualiza a data do relógio dinamicamente baseada no dia real
+                const dia = String(now.getDate()).padStart(2, '0');
+                const mes = String(now.getMonth() + 1).padStart(2, '0');
+                const ano = now.getFullYear();
+                document.getElementById('live-date').textContent = `${dia}/${mes}/${ano}`;
             }, 1000);
         }
 
+        // Controla a navegação de dias
+        function alterarDia(diasParaSomar) {
+            dataAtual.setDate(dataAtual.getDate() + diasParaSomar);
+            atualizarInterfaceData();
+        }
+
+        // Formata e atualiza os textos de data na tela
+        function atualizarInterfaceData() {
+            const dia = String(dataAtual.getDate()).padStart(2, '0');
+            const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+            const ano = dataAtual.getFullYear();
+            const dataFormatada = `${dia}/${mes}/${ano}`;
+
+            // Lista de dias da semana em português
+            const diasSemana = ["Domingo", "Segunda-Feira", "Terça-Feira", "Quarta-Feira", "Quinta-Feira", "Sexta-Feira", "Sábado"];
+            const nomeDiaSemana = diasSemana[dataAtual.getDay()];
+
+            // Atualiza o DOM
+            document.getElementById('day-of-week-label').textContent = nomeDiaSemana;
+            document.getElementById('display-date').textContent = dataFormatada;
+            document.getElementById('task-date-input').value = dataFormatada; // Mantém o formulário sincronizado
+
+            renderizarTarefas();
+        }
+
+        // Adiciona um novo objeto de tarefa ao array
         function salvarTarefa() {
-            const taskName = document.getElementById('task-name').value;
-            if (!taskName) { alert("Por favor, preencha o nome!"); return; }
-            alert(`Tarefa "${taskName}" salva!`);
-            document.getElementById('task-name').value = "";
+            const taskName = document.getElementById('task-name').value.trim();
+            const taskTime = document.getElementById('task-time').value;
+            
+            if (!taskName) { 
+                alert("Por favor, preencha o nome da tarefa!"); 
+                return; 
+            }
+
+            const novaTarefa = {
+                id: Date.now(),
+                nome: taskName,
+                data: document.getElementById('task-date-input').value, // Salva atrelado à data visualizada
+                horario: taskTime || "Sem horário"
+            };
+
+            listaDeTarefas.push(novaTarefa);
+            document.getElementById('task-name').value = ""; // Limpa o campo de texto
+            
+            renderizarTarefas();
+        }
+
+        // Deleta uma tarefa específica pelo ID
+        function deletarTarefa(id) {
+            listaDeTarefas = listaDeTarefas.filter(tarefa => tarefa.id !== id);
+            renderizarTarefas();
+        }
+
+        // Filtra as tarefas do dia selecionado e monta o HTML delas na tela
+        function renderizarTarefas() {
+            const listaContainer = document.getElementById('tasks-list');
+            const dataFormatadaAtual = document.getElementById('display-date').textContent;
+            
+            // Filtra apenas as tarefas criadas na data que o usuário está olhando
+            const tarefasDoDia = listaDeTarefas.filter(tarefa => tarefa.data === dataFormatadaAtual);
+
+            if (tarefasDoDia.length === 0) {
+                listaContainer.innerHTML = `<div class="no-tasks">Nenhuma tarefa marcada para este dia.</div>`;
+                return;
+            }
+
+            // Ordena por horário antes de exibir
+            tarefasDoDia.sort((a, b) => a.horario.localeCompare(b.horario));
+
+            listaContainer.innerHTML = ""; // Limpa container antes de reconstruir
+            tarefasDoDia.forEach(tarefa => {
+                const itemHtml = `
+                    <div class="task-item">
+                        <div class="task-info">
+                            <span class="task-title-text">${tarefa.nome}</span>
+                            <span class="task-time-text"><i class="fa-regular fa-clock"></i> ${tarefa.horario}</span>
+                        </div>
+                        <button class="btn-delete" onclick="deletarTarefa(${tarefa.id})">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                listaContainer.insertAdjacentHTML('beforeend', itemHtml);
+            });
         }
     </script>
 </body>
