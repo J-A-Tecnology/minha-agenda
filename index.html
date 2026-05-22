@@ -440,7 +440,7 @@
     </section>
 
     <script>
-        // --- CHAVES ATUALIZADAS DO SEU PROJETO REAL (JA-AGENDA) ---
+        // --- CHAVES DO PROJETO REAL (JA-AGENDA) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAdyGKfXLfms4f5eUnRjXfQlJ8kD4L7fEI",
             authDomain: "ja-agenda.firebaseapp.com",
@@ -491,7 +491,7 @@
             });
         });
 
-        /* --- CONEXÃO FIREBASE (Sincronização por E-mail) --- */
+        /* --- CONEXÃO FIREBASE --- */
         function loginComGoogle() {
             const { signInWithPopup, GoogleAuthProvider } = window.fbModules;
             const provider = new GoogleAuthProvider();
@@ -550,16 +550,25 @@
         }
 
         async function salvarDadosNaNuvem() {
-            if (!currentUser || !currentUser.email) return;
-            const { doc, setDoc } = window.fbModules;
-            await setDoc(doc(db, "agendas", currentUser.email), {
-                tarefas: listaDeTarefas,
-                lixeira: lixeiraDeTarefas,
-                notas: listaDeNotas,
-                stickers: listaDeStickers,
-                xp: userXP,
-                level: userLevel
-            }, { merge: true });
+            if (!currentUser || !currentUser.email) {
+                console.log("Nenhum usuário logado para sincronizar na nuvem.");
+                return;
+            }
+            try {
+                const { doc, setDoc } = window.fbModules;
+                await setDoc(doc(db, "agendas", currentUser.email), {
+                    tarefas: listaDeTarefas,
+                    lixeira: lixeiraDeTarefas,
+                    notas: listaDeNotas,
+                    stickers: listaDeStickers,
+                    xp: userXP,
+                    level: userLevel
+                }, { merge: true });
+                console.log("Dados sincronizados com o Firebase com sucesso!");
+            } catch (error) {
+                console.error("Erro crítico ao salvar no Firebase:", error);
+                alert("Erro ao sincronizar com o servidor: " + error.message);
+            }
         }
 
         function startClock() {
@@ -767,7 +776,7 @@
             window.scrollTo({ top: document.getElementById('main-task-form').offsetTop, behavior: 'smooth' });
         }
 
-        function salvarTarefa() {
+        async function salvarTarefa() {
             if(!currentUser) { alert("Faça login para salvar suas tarefas!"); return; }
             const nameInput = document.getElementById('task-name'); const subInput = document.getElementById('task-subtasks'); const nome = nameInput.value.trim();
             if (!nome) { alert("Preencha a descrição!"); return; }
@@ -791,7 +800,9 @@
                 adicionarXP(15);
             }
             nameInput.value = ""; subInput.value = ""; 
-            salvarDadosNaNuvem();
+            
+            atualizarInterface();
+            await salvarDadosNaNuvem();
         }
 
         function exportarParaExcel() {
@@ -831,18 +842,20 @@
         }
         function atualizarGamificacaoUI() { document.getElementById('user-level').textContent = userLevel; document.getElementById('xp-fill-bar').style.width = `${userXP}%`; }
         
-        function alternarConclusaoTarefa(id) { 
+        async function alternarConclusaoTarefa(id) { 
             listaDeTarefas = listaDeTarefas.map(t => { if (t.id === id) { t.concluida = !t.concluida; if(t.concluida) { adicionarXP(20); if(t.subtarefas) t.subtarefas.forEach(s => s.concluida = true); } } return t; }); 
-            salvarDadosNaNuvem();
+            atualizarInterface();
+            await salvarDadosNaNuvem();
         }
-        function alternarSubtarefa(tId, sId) { 
+        async function alternarSubtarefa(tId, sId) { 
             listaDeTarefas = listaDeTarefas.map(t => { if (t.id === tId) { t.subtarefas = t.subtarefas.map(s => { if (s.id === sId) { s.concluida = !s.concluida; if(s.concluida) adicionarXP(5); } return s; }); } return t; }); 
-            salvarDadosNaNuvem();
+            atualizarInterface();
+            await salvarDadosNaNuvem();
         }
         
-        function moverParaLixeira(id) { const item = listaDeTarefas.find(t => t.id === id); if (item) { lixeiraDeTarefas.push(item); listaDeTarefas = listaDeTarefas.filter(t => t.id !== id); salvarDadosNaNuvem(); } }
-        function restaurarTarefa(id) { const item = lixeiraDeTarefas.find(t => t.id === id); if (item) { listaDeTarefas.push(item); lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); salvarDadosNaNuvem(); } }
-        function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); salvarDadosNaNuvem(); }
+        async function moverParaLixeira(id) { const item = listaDeTarefas.find(t => t.id === id); if (item) { lixeiraDeTarefas.push(item); listaDeTarefas = listaDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); } }
+        async function restaurarTarefa(id) { const item = lixeiraDeTarefas.find(t => t.id === id); if (item) { listaDeTarefas.push(item); lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); } }
+        async function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); renderizerLixeira(); await salvarDadosNaNuvem(); }
         
         function renderizerLixeira() { const container = document.getElementById('trash-list-target'); document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length; if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; opacity:0.6;">Lixeira vazia.</div>`; return; } container.innerHTML = ""; lixeiraDeTarefas.forEach(t => { container.insertAdjacentHTML('beforeend', `<div class="trash-item" style="display:flex; justify-content:between; align-items:center;"><div><strong>${t.nome}</strong></div><div><button style="color:#2ecc71; background:none; border:none; margin-right:8px; cursor:pointer;" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button><button style="color:#e74c3c; background:none; border:none; cursor:pointer;" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>`); }); }
         function atualizarEstatisticasMenu() { document.getElementById('stat-total').textContent = listaDeTarefas.length; let conc = listaDeTarefas.filter(t => t.concluida).length; document.getElementById('stat-concluidas').textContent = conc; document.getElementById('stat-pendentes').textContent = listaDeTarefas.length - conc; }
@@ -853,7 +866,7 @@
             if (modoVisualizacao === 'dia') { document.getElementById('day-of-week-label').style.display = 'block'; document.getElementById('day-of-week-label').textContent = diasSemana[dataAtual.getDay()]; document.getElementById('display-date').textContent = dataFmt; } 
             else if (modoVisualizacao === 'semana') { document.getElementById('day-of-week-label').style.display = 'none'; document.getElementById('display-date').textContent = `Semana de ${dataFmt}`; renderizarGradeSemana(); } 
             else if (modoVisualizacao === 'mes') { document.getElementById('day-of-week-label').style.display = 'none'; document.getElementById('display-date').textContent = `${mesesAno[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}`; renderizarGradeMes(); }
-            renderizarTarefas(); atualizarEstatisticasMenu();
+            renderizarTarefas(); atualizarEstatisticasMenu(); renderizerLixeira();
         }
 
         function renderizarGradeSemana() {
@@ -867,7 +880,7 @@
         }
 
         function exportarDados() { const backup = { tarefas: listaDeTarefas, lixeira: lixeiraDeTarefas, notas: listaDeNotas, xp: userXP, level: userLevel, stickers: listaDeStickers }; const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup)); const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "agenda_backup.json"); document.body.appendChild(a); a.click(); a.remove(); }
-        function importarDados(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(evt) { try { const d = JSON.parse(evt.target.result); if (d.tarefas) { listaDeTarefas = d.tarefas; lixeiraDeTarefas = d.lixeira || []; listaDeNotas = d.notas || []; listaDeStickers = d.stickers || []; userXP = d.xp || 0; userLevel = d.level || 1; salvarDadosNaNuvem(); } } catch (err) { alert("Erro ao importar dados!"); } }; reader.readAsText(file); }
+        function importarDados(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async function(evt) { try { const d = JSON.parse(evt.target.result); if (d.tarefas) { listaDeTarefas = d.tarefas; lixeiraDeTarefas = d.lixeira || []; listaDeNotas = d.notas || []; listaDeStickers = d.stickers || []; userXP = d.xp || 0; userLevel = d.level || 1; atualizarInterface(); await salvarDadosNaNuvem(); } } catch (err) { alert("Erro ao importar dados!"); } }; reader.readAsText(file); }
     </script>
 </body>
 </html>
