@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Agenda Ultimate</title>
+    <title>Minha Agenda Ultimate Pro Dashboard</title>
     
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* Variáveis de Cores para Temas Padrão (Modo Claro) */
         :root {
             --bg-body: #f4f6f9;
             --bg-card: #ffffff;
@@ -20,7 +19,6 @@
             --sidebar-bg: #2c3e50;
         }
 
-        /* Variáveis para o Modo Escuro */
         [data-theme="escuro"] {
             --bg-body: #121212;
             --bg-card: #1e1e1e;
@@ -31,7 +29,6 @@
             --sidebar-bg: #181818;
         }
 
-        /* Variáveis para o Modo Azul Noturno */
         [data-theme="azul-noturno"] {
             --bg-body: #0f172a;
             --bg-card: #1e293b;
@@ -46,16 +43,27 @@
         body { font-family: Arial, sans-serif; background-color: var(--bg-body); padding: 20px; color: var(--text-main); overflow-x: hidden; transition: background 0.3s, color 0.3s; }
         
         /* Cabeçalho */
-        .header-main { display: flex; justify-content: space-between; align-items: center; background-color: var(--header-bg); padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .header-main { display: flex; justify-content: space-between; align-items: center; background-color: var(--header-bg); padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-btn { background-color: #34495e; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 18px; cursor: pointer; }
         .title-area h1 { font-size: 24px; color: #3498db; }
         .auth-block { margin-top: 8px; min-height: 45px; display: block !important; }
 
-        /* Relógio Digital */
+        /* Widgets do Topo (Relógio e Pomodoro) */
+        .header-widgets { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .clock-container { background-color: #1a252f; color: #fff; padding: 10px 20px; border-radius: 6px; text-align: right; font-weight: bold; }
         .clock-time { font-size: 20px; letter-spacing: 1px; color: #3498db; }
         .clock-date { font-size: 11px; color: #bdc3c7; margin-top: 2px; }
+
+        /* Pomodoro */
+        .pomodoro-box { background: #e74c3c; color: white; padding: 10px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .pomo-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .pomo-btn:hover { background: rgba(255,255,255,0.4); }
+
+        /* Sistema de Gamificação no Menu */
+        .gamification-banner { background: linear-gradient(135deg, #8e44ad, #3498db); padding: 15px; border-radius: 6px; margin-bottom: 15px; color: white; }
+        .xp-bar-container { background: rgba(255,255,255,0.2); height: 100%; border-radius: 10px; margin-top: 8px; overflow: hidden; height: 12px; }
+        .xp-bar-fill { background: #2ecc71; height: 100%; width: 0%; transition: width 0.4s; }
 
         /* Menu Lateral (Sidebar) */
         .sidebar { position: fixed; top: 0; left: -380px; width: 380px; height: 100%; background-color: var(--sidebar-bg); color: white; padding: 25px; box-shadow: 4px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease-in-out; z-index: 2000; overflow-y: auto; }
@@ -65,16 +73,12 @@
         
         /* Abas do Menu */
         .menu-tabs { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { flex: 1; padding: 8px 4px; background: #34495e; border: none; color: #bdc3c7; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .tab-btn { flex: 1; padding: 8px 4px; background: #34495e; border: none; color: #bdc3c7; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; text-align: center; }
         .tab-btn.active { background: #3498db; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Aba Personalização */
-        .theme-select-box { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .theme-option-btn { padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; text-align: left; color: white; }
-
-        /* Painéis e Listas Internas do Menu */
+        /* Estilos do Menu */
         .stats-panel { background: #34495e; padding: 15px; border-radius: 6px; }
         .stat-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
         .trash-item { background: #34495e; padding: 10px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
@@ -82,13 +86,14 @@
         .note-input-title, .note-input-body { width: 100%; padding: 8px; border-radius: 4px; border: none; font-size: 13px; color: #333; }
         .note-card { background: #f1c40f; color: #2c3e50; padding: 12px; border-radius: 6px; position: relative; margin-bottom: 10px; }
         .btn-delete-note { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #c0392b; cursor: pointer; }
+        .io-btn { background: #34495e; color: white; border: 1px solid #555; padding: 8px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%; font-weight: bold; }
 
-        /* Seletores de Modos de Visualização Principal */
+        /* Modos de Visualização Principal */
         .view-switcher { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
         .view-btn { padding: 10px 20px; border: none; background-color: var(--bg-card); color: var(--text-main); font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s; border: 1px solid var(--border-color); }
         .view-btn.active { background-color: #3498db; color: white; border-color: #3498db; }
 
-        /* Navegação e Cards */
+        /* Navegação e Blocos */
         .navigation-bar { display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-card); padding: 12px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border-color); }
         .nav-btn { background-color: #2980b9; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .current-date { font-size: 18px; font-weight: bold; }
@@ -97,44 +102,41 @@
         /* Formulários */
         .input-text, .select-field, .input-date, .input-time { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px; background-color: var(--bg-body); color: var(--text-main); }
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-        .form-col { flex: 1; min-width: 150px; }
+        .form-col { flex: 1; min-width: 140px; }
         .btn-add { width: 100%; background-color: #2a9d8f; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
-        /* Estruturas de Visualização Avançada */
-        /* Visão de Semana */
-        .week-view-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        /* Visão Semana e Mês */
+        .week-view-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .week-day-card { background-color: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; text-align: center; }
         .week-day-card.selected { border-color: #3498db; background-color: rgba(52, 152, 219, 0.1); }
-        .week-day-title { font-weight: bold; font-size: 14px; }
-        .week-day-date { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-        .week-day-badge { display: inline-block; background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-top: 6px; font-weight: bold; }
-
-        /* Visão de Mês (Calendário Grid) */
         .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background-color: var(--border-color); padding: 5px; border-radius: 6px; }
-        .month-grid-header { font-weight: bold; text-align: center; padding: 8px 0; background-color: var(--bg-card); font-size: 12px; color: var(--text-muted); }
-        .month-cell { background-color: var(--bg-card); min-height: 75px; padding: 6px; position: relative; cursor: pointer; transition: background 0.2s; }
-        .month-cell:hover { background-color: rgba(52, 152, 219, 0.05); }
+        .month-grid-header { font-weight: bold; text-align: center; padding: 8px 0; background-color: var(--bg-card); font-size: 12px; }
+        .month-cell { background-color: var(--bg-card); min-height: 75px; padding: 6px; position: relative; cursor: pointer; }
         .month-cell.current-active { background-color: rgba(52, 152, 219, 0.12); border: 1px solid #3498db; }
         .month-cell.other-month { opacity: 0.35; }
-        .month-day-num { font-weight: bold; font-size: 13px; }
         .month-task-indicator { background: #e67e22; width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 2px; }
-        .month-indicators-wrapper { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 2px; }
 
-        /* Cards de Itens de Tarefas */
-        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: var(--bg-body); border-radius: 4px; margin-top: 10px; border: 1px solid var(--border-color); }
-        .task-left-wrapper { display: flex; align-items: center; gap: 12px; flex: 1; }
-        .task-item.cor-azul { border-left: 5px solid #3498db; }
-        .task-item.cor-vermelho { border-left: 5px solid #e74c3c; }
-        .task-item.cor-verde { border-left: 5px solid #2ecc71; }
-        .task-item.cor-amarelo { border-left: 5px solid #f1c40f; }
-        .check-btn { background: none; border: 2px solid var(--text-muted); width: 20px; height: 20px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 10px; }
-        .task-item.completed { opacity: 0.55; }
+        /* Cards de Itens de Tarefas Avançados */
+        .task-item { display: flex; flex-direction: column; gap: 10px; padding: 15px; background-color: var(--bg-body); border-radius: 6px; margin-top: 10px; border: 1px solid var(--border-color); position: relative; }
+        .task-top-wrapper { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .task-item.cor-azul { border-left: 6px solid #3498db; }
+        .task-item.cor-vermelho { border-left: 6px solid #e74c3c; }
+        .task-item.cor-verde { border-left: 6px solid #2ecc71; }
+        .task-item.cor-amarelo { border-left: 6px solid #f1c40f; }
+        
+        .check-btn { background: none; border: 2px solid var(--text-muted); width: 22px; height: 22px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 11px; }
+        .task-item.completed { opacity: 0.5; }
         .task-item.completed .check-btn { background-color: #2ecc71; border-color: #2ecc71; color: white; }
         .task-item.completed .task-title-text { text-decoration: line-through; color: var(--text-muted); }
-        .task-info { display: flex; flex-direction: column; gap: 4px; }
-        .task-title-text { font-weight: bold; font-size: 15px; }
-        .task-time-text { font-size: 12px; color: var(--text-muted); }
-        .btn-delete { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 16px; }
+        
+        /* Badge de Rotina/Hábito */
+        .habit-badge { font-size: 10px; background: #9b59b6; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: bold; }
+
+        /* Layout de Subtarefas (Checklist) */
+        .subtasks-wrapper { background: var(--bg-card); padding: 8px 12px; border-radius: 4px; margin-top: 5px; border: 1px solid var(--border-color); }
+        .subtask-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 4px 0; }
+        .subtask-row.done { text-decoration: line-through; opacity: 0.6; }
+
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1500; }
         .sidebar-overlay.active { display: block !important; }
     </style>
@@ -148,11 +150,17 @@
             <button class="sidebar-close" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
+        <div class="gamification-banner">
+            <div><i class="fa-solid fa-trophy"></i> Nível Produtivo: <span id="user-level">1</span></div>
+            <div style="font-size: 11px; margin-top: 4px;">XP Atual: <span id="user-xp">0</span> / 100</div>
+            <div class="xp-bar-container"><div class="xp-bar-fill" id="xp-fill-bar"></div></div>
+        </div>
+
         <div class="menu-tabs">
-            <button class="tab-btn active" id="tab-link-stats" onclick="switchTab('stats')"><i class="fa-solid fa-chart-pie"></i> Índices</button>
-            <button class="tab-btn" id="tab-link-notes" onclick="switchTab('notes')"><i class="fa-regular fa-sticky-note"></i> Notas</button>
-            <button class="tab-btn" id="tab-link-trash" onclick="switchTab('trash')"><i class="fa-solid fa-trash"></i> Lixeira (<span id="trash-count-badge">0</span>)</button>
-            <button class="tab-btn" id="tab-link-theme" onclick="switchTab('theme')"><i class="fa-solid fa-palette"></i> Aparência</button>
+            <button class="tab-btn active" id="tab-link-stats" onclick="switchTab('stats')">Índices</button>
+            <button class="tab-btn" id="tab-link-notes" onclick="switchTab('notes')">Notas</button>
+            <button class="tab-btn" id="tab-link-trash" onclick="switchTab('trash')">Lixeira (<span id="trash-count-badge">0</span>)</button>
+            <button class="tab-btn" id="tab-link-theme" onclick="switchTab('theme')">Aparência</button>
         </div>
         
         <div class="tab-content active" id="tab-content-stats">
@@ -167,7 +175,7 @@
         <div class="tab-content" id="tab-content-notes">
             <div class="notes-form">
                 <input type="text" id="note-title" class="note-input-title" placeholder="Título da Nota...">
-                <textarea id="note-body" class="note-input-body" placeholder="Escreva sua anotação aqui..."></textarea>
+                <textarea id="note-body" class="note-input-body" placeholder="Escreva sua anotação..."></textarea>
                 <button style="background: #2ecc71; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;" onclick="criarNota()">Criar Nota</button>
             </div>
             <div id="notes-list-target"></div>
@@ -180,10 +188,15 @@
         <div class="tab-content" id="tab-content-theme">
             <h4 style="font-size: 12px; text-transform: uppercase; color:#bdc3c7;">Selecione um Tema</h4>
             <div class="theme-select-box">
-                <button class="theme-option-btn" style="background: #ffffff; color: #333; border: 1px solid #ccc;" onclick="mudarTema('claro')">☀️ Modo Claro (Padrão)</button>
-                <button class="theme-option-btn" style="background: #222222; color: #fff;" onclick="mudarTema('escuro')">🌙 Modo Escuro (Dark)</button>
+                <button class="theme-option-btn" style="background: #ffffff; color: #333; border: 1px solid #ccc;" onclick="mudarTema('claro')">☀️ Modo Claro</button>
+                <button class="theme-option-btn" style="background: #222222; color: #fff;" onclick="mudarTema('escuro')">🌙 Modo Escuro</button>
                 <button class="theme-option-btn" style="background: #1e293b; color: #38bdf8;" onclick="mudarTema('azul-noturno')">🌌 Azul Noturno</button>
             </div>
+            <hr style="margin: 15px 0; border-color: #444;">
+            <h4 style="font-size: 12px; text-transform: uppercase; color:#bdc3c7;">Backup do Sistema</h4>
+            <button class="io-btn" onclick="exportarDados()"><i class="fa-solid fa-download"></i> Exportar Dados (Backup)</button>
+            <button class="io-btn" onclick="document.getElementById('import-file').click()"><i class="fa-solid fa-upload"></i> Importar Dados</button>
+            <input type="file" id="import-file" style="display:none;" onchange="importarDados(event)">
         </div>
     </div>
 
@@ -198,9 +211,18 @@
                 </div>
             </div>
         </div>
-        <div class="clock-container">
-            <div class="clock-time" id="live-clock">00:00:00</div>
-            <div class="clock-date" id="live-date">22/05/2026</div>
+        
+        <div class="header-widgets">
+            <div class="pomodoro-box" id="pomo-widget">
+                <span id="pomo-label"><i class="fa-solid fa-brain"></i> Foco:</span>
+                <span id="pomo-time">25:00</span>
+                <button class="pomo-btn" id="pomo-start-btn" onclick="togglePomodoro()">Iniciar</button>
+            </div>
+            
+            <div class="clock-container">
+                <div class="clock-time" id="live-clock">00:00:00</div>
+                <div class="clock-date" id="live-date">22/05/2026</div>
+            </div>
         </div>
     </header>
 
@@ -218,20 +240,26 @@
         <button class="nav-btn" onclick="navegarData(1)">Próximo <i class="fa-solid fa-caret-right"></i></button>
     </section>
 
-    <div id="container-visao-semana" style="display: none;">
-        <div class="week-view-container" id="week-grid-target"></div>
-    </div>
-
-    <div id="container-visao-mes" style="display: none;" class="card-form">
-        <div class="month-grid" id="month-grid-target"></div>
-    </div>
+    <div id="container-visao-semana" style="display: none;"><div class="week-view-container" id="week-grid-target"></div></div>
+    <div id="container-visao-mes" style="display: none;" class="card-form"><div class="month-grid" id="month-grid-target"></div></div>
 
     <main class="card-form" id="main-task-form">
-        <h2 class="card-title"><i class="fa-solid fa-plus"></i> Nova Tarefa</h2>
-        <div class="form-group">
-            <label>Descrição da Tarefa</label>
-            <input type="text" class="input-text" id="task-name" placeholder="Ex: Academia, Reunião...">
+        <h2 class="card-title"><i class="fa-solid fa-plus"></i> Painel de Agendamento Inteligente</h2>
+        
+        <div class="form-row">
+            <div class="form-col" style="flex: 2;">
+                <label>O que você vai fazer?</label>
+                <input type="text" class="input-text" id="task-name" placeholder="Ex: Treino de Perna, Estudar Inglês...">
+            </div>
+            <div class="form-col">
+                <label>Frequência / Rotina</label>
+                <select class="select-field" id="task-frequency">
+                    <option value="unica">Tarefa Única</option>
+                    <option value="diaria">🔁 Hábito Diário</option>
+                </select>
+            </div>
         </div>
+
         <div class="form-row">
             <div class="form-col">
                 <label>Categoria (Cor)</label>
@@ -243,15 +271,30 @@
                 </select>
             </div>
             <div class="form-col">
+                <label>Ícone Temático</label>
+                <select class="select-field" id="task-icon">
+                    <option value="fa-circle-check">📌 Geral</option>
+                    <option value="fa-briefcase">💻 Trabalho / Estudo</option>
+                    <option value="fa-dumbbell">🏋️ Saúde / Esporte</option>
+                    <option value="fa-wallet">💰 Finanças / Banco</option>
+                </select>
+            </div>
+            <div class="form-col">
                 <label>Data</label>
-                <input type="text" class="input-date" id="task-date-input" value="22/05/2026" readonly>
+                <input type="text" class="input-date" id="task-date-input" readonly>
             </div>
             <div class="form-col">
                 <label>Horário</label>
-                <input type="time" class="input-time" id="task-time" value="14:00">
+                <input type="time" class="input-time" id="task-time" value="12:00">
             </div>
         </div>
-        <button type="button" class="btn-add" onclick="salvarTarefa()">Adicionar na Agenda</button>
+
+        <div class="form-group">
+            <label>Subtarefas / Checklist <span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(Separe os itens por vírgula)</span></label>
+            <input type="text" class="input-text" id="task-subtasks" placeholder="Ex: Aquecimento, Agachamento, Cardio">
+        </div>
+
+        <button type="button" class="btn-add" onclick="salvarTarefa()">Adicionar na Agenda (+XP)</button>
     </main>
 
     <section class="tasks-container">
@@ -261,204 +304,290 @@
 
     <script>
         let dataAtual = new Date("2026-05-22T00:00:00");
-        let modoVisualizacao = 'dia'; // 'dia', 'semana' ou 'mes'
+        let modoVisualizacao = 'dia';
         
         let listaDeTarefas = JSON.parse(localStorage.getItem('minha_agenda_tarefas')) || [];
         let lixeiraDeTarefas = JSON.parse(localStorage.getItem('minha_agenda_lixeira')) || [];
         let listaDeNotas = JSON.parse(localStorage.getItem('minha_agenda_notas')) || [];
+        let userXP = parseInt(localStorage.getItem('minha_agenda_xp')) || 0;
+        let userLevel = parseInt(localStorage.getItem('minha_agenda_level')) || 1;
+
+        // Controle do Pomodoro
+        let pomoInterval = null;
+        let pomoTempoRestante = 25 * 60;
+        let pomoEstado = 'foco'; // 'foco' ou 'pausa'
 
         document.addEventListener('DOMContentLoaded', function () {
-            const temaSalvo = localStorage.getItem('minha_agenda_tema') || 'claro';
-            mudarTema(temaSalvo);
+            mudarTema(localStorage.getItem('minha_agenda_tema') || 'claro');
             startClock();
             atualizarInterface();
             renderizarNotas();
             renderizarLixeira();
+            atualizarGamificacaoUI();
         });
 
         function startClock() {
             setInterval(() => {
                 const now = new Date();
                 document.getElementById('live-clock').textContent = now.toTimeString().split(' ')[0];
-                const dia = String(now.getDate()).padStart(2, '0');
-                const mes = String(now.getMonth() + 1).padStart(2, '0');
-                document.getElementById('live-date').textContent = `${dia}/${mes}/${now.getFullYear()}`;
+                document.getElementById('live-date').textContent = formatarDataString(now);
             }, 1000);
         }
 
-        function mudarTema(tema) {
-            document.documentElement.setAttribute('data-theme', tema);
-            localStorage.setItem('minha_agenda_tema', tema);
+        /* --- SISTEMA POMODORO --- */
+        function togglePomodoro() {
+            const btn = document.getElementById('pomo-start-btn');
+            if (pomoInterval) {
+                clearInterval(pomoInterval);
+                pomoInterval = null;
+                btn.textContent = "Iniciar";
+            } else {
+                btn.textContent = "Pausar";
+                pomoInterval = setInterval(() => {
+                    if (pomoTempoRestante > 0) {
+                        pomoTempoRestante--;
+                        const min = String(Math.floor(pomoTempoRestante / 60)).padStart(2, '0');
+                        const seg = String(pomoTempoRestante % 60).padStart(2, '0');
+                        document.getElementById('pomo-time').textContent = `${min}:${seg}`;
+                    } else {
+                        clearInterval(pomoInterval);
+                        pomoInterval = null;
+                        if (pomoEstado === 'foco') {
+                            alert("Belo bloco de foco! Hora de uma pausa de 5 minutos.");
+                            pomoEstado = 'pausa';
+                            pomoTempoRestante = 5 * 60;
+                            document.getElementById('pomo-widget').style.backgroundColor = '#2ecc71';
+                            document.getElementById('pomo-label').innerHTML = `<i class="fa-solid fa-mug-hot"></i> Pausa:`;
+                        } else {
+                            alert("A pausa acabou! De volta ao trabalho.");
+                            pomoEstado = 'foco';
+                            pomoTempoRestante = 25 * 60;
+                            document.getElementById('pomo-widget').style.backgroundColor = '#e74c3c';
+                            document.getElementById('pomo-label').innerHTML = `<i class="fa-solid fa-brain"></i> Foco:`;
+                        }
+                        togglePomodoro();
+                    }
+                }, 1000);
+            }
         }
 
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
+        /* --- GAMIFICAÇÃO (XP & NÍVEL) --- */
+        function adicionarXP(quantidade) {
+            userXP += quantidade;
+            if (userXP >= 100) {
+                userXP = userXP - 100;
+                userLevel++;
+                alert(`🎉 PARABÉNS! Você evoluiu para o Nível ${userLevel}! Continue focado.`);
+            }
+            localStorage.setItem('minha_agenda_xp', userXP);
+            localStorage.setItem('minha_agenda_level', userLevel);
+            atualizarGamificacaoUI();
         }
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(`tab-link-${tabName}`).classList.add('active');
-            document.getElementById(`tab-content-${tabName}`).classList.add('active');
+        function atualizarGamificacaoUI() {
+            document.getElementById('user-level').textContent = userLevel;
+            document.getElementById('user-xp').textContent = userXP;
+            document.getElementById('xp-fill-bar').style.width = `${userXP}%`;
         }
 
-        function alterarModoVisualizacao(modo) {
-            modoVisualizacao = modo;
+        /* --- BACKUP (EXPORTAR / IMPORTAR) --- */
+        function exportarDados() {
+            const backup = {
+                tarefas: listaDeTarefas,
+                lixeira: lixeiraDeTarefas,
+                notas: listaDeNotas,
+                xp: userXP,
+                level: userLevel
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "minha_agenda_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importarDados(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    if (dados.tarefas) {
+                        listaDeTarefas = dados.tarefas;
+                        lixeiraDeTarefas = dados.lixeira || [];
+                        listaDeNotas = dados.notas || [];
+                        userXP = dados.xp || 0;
+                        userLevel = dados.level || 1;
+
+                        localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas));
+                        localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas));
+                        localStorage.setItem('minha_agenda_notas', JSON.stringify(listaDeNotas));
+                        localStorage.setItem('minha_agenda_xp', userXP);
+                        localStorage.setItem('minha_agenda_level', userLevel);
+
+                        alert("Dados importados com sucesso!");
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    alert("Arquivo de backup inválido.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* --- ARQUITETURA DE DATA E VIEW --- */
+        function mudarTema(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('minha_agenda_tema', t); }
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
+        function switchTab(t) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.getElementById(`tab-link-${t}`).classList.add('active'); document.getElementById(`tab-content-${t}`).classList.add('active'); }
+        
+        function alterarModoVisualizacao(m) {
+            modoVisualizacao = m;
             document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-view-${modo}`).classList.add('active');
-            
-            document.getElementById('container-visao-semana').style.display = modo === 'semana' ? 'block' : 'none';
-            document.getElementById('container-visao-mes').style.display = modo === 'mes' ? 'block' : 'none';
-            
+            document.getElementById(`btn-view-${m}`).classList.add('active');
+            document.getElementById('container-visao-semana').style.display = m === 'semana' ? 'block' : 'none';
+            document.getElementById('container-visao-mes').style.display = m === 'mes' ? 'block' : 'none';
             atualizarInterface();
         }
 
-        function navegarData(direcao) {
-            if (modoVisualizacao === 'dia') {
-                dataAtual.setDate(dataAtual.getDate() + direcao);
-            } else if (modoVisualizacao === 'semana') {
-                dataAtual.setDate(dataAtual.getDate() + (direcao * 7));
-            } else if (modoVisualizacao === 'mes') {
-                dataAtual.setMonth(dataAtual.getMonth() + direcao);
-            }
+        function navegarData(dir) {
+            if (modoVisualizacao === 'dia') dataAtual.setDate(dataAtual.getDate() + dir);
+            else if (modoVisualizacao === 'semana') dataAtual.setDate(dataAtual.getDate() + (dir * 7));
+            else if (modoVisualizacao === 'mes') dataAtual.setMonth(dataAtual.getMonth() + dir);
             atualizarInterface();
         }
 
         function formatarDataString(dateObj) {
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            return `${d}/${m}/${dateObj.getFullYear()}`;
+            return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
         }
 
         function atualizarInterface() {
-            const dataFormatada = formatarDataString(dataAtual);
+            const dataFmt = formatarDataString(dataAtual);
             const diasSemana = ["Domingo", "Segunda-Feira", "Terça-Feira", "Quarta-Feira", "Quinta-Feira", "Sexta-Feira", "Sábado"];
             const mesesAno = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
-            document.getElementById('task-date-input').value = dataFormatada;
+            document.getElementById('task-date-input').value = dataFmt;
 
             if (modoVisualizacao === 'dia') {
                 document.getElementById('day-of-week-label').style.display = 'block';
                 document.getElementById('day-of-week-label').textContent = diasSemana[dataAtual.getDay()];
-                document.getElementById('display-date').textContent = dataFormatada;
+                document.getElementById('display-date').textContent = dataFmt;
                 document.getElementById('tasks-list-title').textContent = "Tarefas do Dia";
             } else if (modoVisualizacao === 'semana') {
                 document.getElementById('day-of-week-label').style.display = 'none';
-                document.getElementById('display-date').textContent = `Semana de ${dataFormatada}`;
-                document.getElementById('tasks-list-title').textContent = "Tarefas do Dia Selecionado";
+                document.getElementById('display-date').textContent = `Semana de ${dataFmt}`;
                 renderizarGradeSemana();
             } else if (modoVisualizacao === 'mes') {
                 document.getElementById('day-of-week-label').style.display = 'none';
                 document.getElementById('display-date').textContent = `${mesesAno[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}`;
-                document.getElementById('tasks-list-title').textContent = "Tarefas do Dia Selecionado";
                 renderizarGradeMes();
             }
-
             renderizarTarefas();
             atualizarEstatisticasMenu();
         }
 
         function renderizarGradeSemana() {
-            const grid = document.getElementById('week-grid-target');
-            grid.innerHTML = "";
-            
-            let dataInicio = new Date(dataAtual);
-            // Começa no domingo da semana atual
-            dataInicio.setDate(dataInicio.getDate() - dataInicio.getDay());
-
-            const diasSemanaCurto = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+            const grid = document.getElementById('week-grid-target'); grid.innerHTML = "";
+            let dInicio = new Date(dataAtual); dInicio.setDate(dInicio.getDate() - dInicio.getDay());
+            const shortDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
             for (let i = 0; i < 7; i++) {
-                let diaLoop = new Date(dataInicio);
-                diaLoop.setDate(dataInicio.getDate() + i);
-                let stringDia = formatarDataString(diaLoop);
-                
-                let count = listaDeTarefas.filter(t => t.data === stringDia).length;
-                let classeSelecionado = stringDia === formatarDataString(dataAtual) ? 'selected' : '';
-
-                let html = `
-                    <div class="week-day-card ${classeSelecionado}" onclick="selecionarDataDireta('${diaLoop.toISOString()}')">
-                        <div class="week-day-title">${diasSemanaCurto[i]}</div>
-                        <div class="week-day-date">${diaLoop.getDate()}</div>
-                        ${count > 0 ? `<span class="week-day-badge">${count} tfs</span>` : ''}
+                let dLoop = new Date(dInicio); dLoop.setDate(dInicio.getDate() + i);
+                let sDia = formatarDataString(dLoop);
+                let count = listaDeTarefas.filter(t => t.data === sDia || t.frequencia === 'diaria').length;
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="week-day-card ${sDia === formatarDataString(dataAtual) ? 'selected' : ''}" onclick="selecionarDataDireta('${dLoop.toISOString()}')">
+                        <div style="font-weight:bold;">${shortDays[i]}</div>
+                        <div>${dLoop.getDate()}</div>
+                        ${count > 0 ? `<span style="background:#3498db; color:white; font-size:9px; padding:2px 4px; border-radius:8px;">${count} tfs</span>` : ''}
                     </div>
-                `;
-                grid.insertAdjacentHTML('beforeend', html);
+                `);
             }
         }
 
         function renderizarGradeMes() {
-            const grid = document.getElementById('month-grid-target');
-            grid.innerHTML = "";
+            const grid = document.getElementById('month-grid-target'); grid.innerHTML = "";
+            ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach(d => grid.insertAdjacentHTML('beforeend', `<div class="month-grid-header">${d}</div>`));
 
-            const diasSemanaCurto = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-            diasSemanaCurto.forEach(d => {
-                grid.insertAdjacentHTML('beforeend', `<div class="month-grid-header">${d}</div>`);
-            });
-
-            let primeiroDiaMes = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
-            let folgasIniciais = primeiroDiaMes.getDay();
-
-            let dataInicioGrid = new Date(primeiroDiaMes);
-            dataInicioGrid.setDate(dataInicioGrid.getDate() - folgasIniciais);
+            let pDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
+            let dGrid = new Date(pDia); dGrid.setDate(dGrid.getDate() - pDia.getDay());
 
             for (let k = 0; k < 35; k++) {
-                let diaCell = new Date(dataInicioGrid);
-                diaCell.setDate(dataInicioGrid.getDate() + k);
-                let stringDia = formatarDataString(diaCell);
+                let cell = new Date(dGrid); cell.setDate(dGrid.getDate() + k);
+                let sDia = formatarDataString(cell);
+                let count = listaDeTarefas.filter(t => t.data === sDia || t.frequencia === 'diaria').length;
 
-                let tarefasDoDia = listaDeTarefas.filter(t => t.data === stringDia);
-                let outraMesClasse = diaCell.getMonth() !== dataAtual.getMonth() ? 'other-month' : '';
-                let ativaClasse = stringDia === formatarDataString(dataAtual) ? 'current-active' : '';
-
-                let indicators = "";
-                tarefasDoDia.slice(0, 4).forEach(() => {
-                    indicators += `<span class="month-task-indicator"></span>`;
-                });
-
-                let html = `
-                    <div class="month-cell ${outraMesClasse} ${ativaClasse}" onclick="selecionarDataDireta('${diaCell.toISOString()}')">
-                        <div class="month-day-num">${diaCell.getDate()}</div>
-                        <div class="month-indicators-wrapper">${indicators}</div>
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="month-cell ${cell.getMonth() !== dataAtual.getMonth() ? 'other-month' : ''} ${sDia === formatarDataString(dataAtual) ? 'current-active' : ''}" onclick="selecionarDataDireta('${cell.toISOString()}')">
+                        <div style="font-weight:bold; font-size:12px;">${cell.getDate()}</div>
+                        <div>${count > 0 ? `<span class="month-task-indicator"></span>` : ''}</div>
                     </div>
-                `;
-                grid.insertAdjacentHTML('beforeend', html);
+                `);
             }
         }
 
-        function selecionarDataDireta(isoString) {
-            dataAtual = new Date(isoString);
-            atualizarInterface();
-        }
+        function selecionarDataDireta(iso) { dataAtual = new Date(iso); atualizarInterface(); }
 
-        /* --- GERENCIAMENTO DE TAREFAS --- */
+        /* --- PROCESSAMENTO DE TAREFAS --- */
         function salvarTarefa() {
-            const inputNome = document.getElementById('task-name');
-            const taskName = inputNome.value.trim();
-            const taskTime = document.getElementById('task-time').value;
-            const taskDate = document.getElementById('task-date-input').value.trim();
-            const taskCategory = document.getElementById('task-category').value;
-            
-            if (!taskName) { alert("Preencha a descrição!"); return; }
+            const nameInput = document.getElementById('task-name');
+            const subInput = document.getElementById('task-subtasks');
+            const nome = nameInput.value.trim();
+            if (!nome) { alert("Preencha a descrição!"); return; }
+
+            // Tratamento de Subtarefas
+            let subtarefasFiltradas = subInput.value.split(',')
+                .map(s => s.trim())
+                .filter(s => s.length > 0)
+                .map((s, idx) => ({ id: idx, texto: s, concluida: false }));
 
             listaDeTarefas.push({
                 id: Date.now(),
-                nome: taskName,
-                data: taskDate, 
-                horario: taskTime || "Sem horário",
-                categoria: taskCategory,
-                concluida: false
+                nome: nome,
+                frequencia: document.getElementById('task-frequency').value,
+                categoria: document.getElementById('task-category').value,
+                icone: document.getElementById('task-icon').value,
+                data: document.getElementById('task-date-input').value,
+                horario: document.getElementById('task-time').value || "Sem hora",
+                concluida: false,
+                subtarefas: subtarefasFiltradas
             });
 
             localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas));
-            inputNome.value = ""; 
+            nameInput.value = ""; subInput.value = "";
+            adicionarXP(15); // Ganha 15 XP ao agendar
             atualizarInterface();
         }
 
         function alternarConclusaoTarefa(id) {
             listaDeTarefas = listaDeTarefas.map(t => {
-                if (t.id === id) t.concluida = !t.concluida;
+                if (t.id === id) {
+                    t.concluida = !t.concluida;
+                    if(t.concluida) {
+                        adicionarXP(25); // Concluir dá 25 XP
+                        // Conclui todas as subtarefas automaticamente se marcar a principal
+                        t.subtarefas.forEach(s => s.concluida = true);
+                    }
+                }
+                return t;
+            });
+            localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas));
+            atualizarInterface();
+        }
+
+        function alternarSubtarefa(tarefaId, subId) {
+            listaDeTarefas = listaDeTarefas.map(t => {
+                if (t.id === tarefaId) {
+                    t.subtarefas = t.subtarefas.map(s => {
+                        if (s.id === subId) {
+                            s.concluida = !s.concluida;
+                            if(s.concluida) adicionarXP(5); // Cada subtarefa dá 5 XP
+                        }
+                        return s;
+                    });
+                }
                 return t;
             });
             localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas));
@@ -472,118 +601,86 @@
                 listaDeTarefas = listaDeTarefas.filter(t => t.id !== id);
                 localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas));
                 localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas));
-                atualizarInterface();
-                renderizarLixeira();
+                atualizarInterface(); renderizarLixeira();
             }
-        }
-
-        function restaurarTarefa(id) {
-            const item = lixeiraDeTarefas.find(t => t.id === id);
-            if (item) {
-                listaDeTarefas.push(item);
-                lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id);
-                localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas));
-                localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas));
-                atualizarInterface();
-                renderizarLixeira();
-            }
-        }
-
-        function excluirDefinitivo(id) {
-            lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id);
-            localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas));
-            renderizarLixeira();
-            atualizarEstatisticasMenu();
         }
 
         function renderizarTarefas() {
             const target = document.getElementById('tasks-list');
-            const dataFmt = formatarDataString(dataAtual);
-            const tarefasFiltradas = listaDeTarefas.filter(t => t.data === dataFmt);
+            const currentFmt = formatarDataString(dataAtual);
+            
+            // Filtra tarefas da data ou que sejam diárias (hábitos)
+            const filtradas = listaDeTarefas.filter(t => t.data === currentFmt || t.frequencia === 'diaria');
 
-            if (tarefasFiltradas.length === 0) {
-                target.innerHTML = `<div class="no-tasks">Nenhuma tarefa para o dia ${dataFmt}.</div>`;
-                return;
+            if (filtradas.length === 0) {
+                target.innerHTML = `<div class="no-tasks">Nenhuma atividade para hoje.</div>`; return;
             }
 
-            tarefasFiltradas.sort((a,b) => a.horario.localeCompare(b.horario));
             target.innerHTML = "";
-            tarefasFiltradas.forEach(t => {
-                let html = `
-                    <div class="task-item cor-${t.categoria} ${t.concluida ? 'completed' : ''}">
-                        <div class="task-left-wrapper">
-                            <button class="check-btn" onclick="alternarConclusaoTarefa(${t.id})"><i class="fa-solid fa-check"></i></button>
-                            <div class="task-info">
-                                <span class="task-title-text">${t.nome}</span>
-                                <span class="task-time-text"><i class="fa-regular fa-clock"></i> ${t.horario}</span>
+            filtradas.forEach(t => {
+                let subtasksHtml = "";
+                if (t.subtarefas && t.subtarefas.length > 0) {
+                    subtasksHtml = `<div class="subtasks-wrapper">`;
+                    t.subtarefas.forEach(s => {
+                        subtasksHtml += `
+                            <div class="subtask-row ${s.concluida ? 'done' : ''}">
+                                <input type="checkbox" ${s.concluida ? 'checked' : ''} onclick="alternarSubtarefa(${t.id}, ${s.id})">
+                                <span>${s.texto}</span>
                             </div>
+                        `;
+                    });
+                    subtasksHtml += `</div>`;
+                }
+
+                target.insertAdjacentHTML('beforeend', `
+                    <div class="task-item cor-${t.categoria} ${t.concluida ? 'completed' : ''}">
+                        <div class="task-top-wrapper">
+                            <div class="task-left-wrapper">
+                                <button class="check-btn" onclick="alternarConclusaoTarefa(${t.id})"><i class="fa-solid fa-check"></i></button>
+                                <div class="task-info">
+                                    <span class="task-title-text"><i class="fa-solid ${t.icone}"></i> ${t.nome} ${t.frequencia === 'diaria' ? '<span class="habit-badge">Hábito</span>' : ''}</span>
+                                    <span class="task-time-text"><i class="fa-regular fa-clock"></i> ${t.horario}</span>
+                                </div>
+                            </div>
+                            <button class="btn-delete" onclick="moverParaLixeira(${t.id})"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
-                        <button class="btn-delete" onclick="moverParaLixeira(${t.id})"><i class="fa-solid fa-trash-can"></i></button>
+                        ${subtasksHtml}
                     </div>
-                `;
-                target.insertAdjacentHTML('beforeend', html);
+                `);
             });
         }
 
+        /* --- LIXEIRA E NOTAS (PADRÃO REVISADO) --- */
+        function restaurarTarefa(id) {
+            const item = lixeiraDeTarefas.find(t => t.id === id);
+            if (item) {
+                listaDeTarefas.push(item); lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id);
+                localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas));
+                localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas));
+                atualizarInterface(); renderizarLixeira();
+            }
+        }
+        function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas)); renderizarLixeira(); atualizarEstatisticasMenu(); }
         function renderizarLixeira() {
-            const container = document.getElementById('trash-list-target');
-            document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length;
-            if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; padding:10px;">Vazia.</div>`; return; }
+            const container = document.getElementById('trash-list-target'); document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length;
+            if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; padding:10px;">Lixeira vazia.</div>`; return; }
             container.innerHTML = "";
             lixeiraDeTarefas.forEach(t => {
-                let html = `
-                    <div class="trash-item">
-                        <div><strong style="color:#fff;">${t.nome}</strong><br><small>${t.data}</small></div>
-                        <div>
-                            <button class="btn-restore" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button>
-                            <button class="btn-destroy" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                `;
-                container.insertAdjacentHTML('beforeend', html);
+                container.insertAdjacentHTML('beforeend', `<div class="trash-item"><div><strong style="color:#fff;">${t.nome}</strong></div><div><button style="color:#2ecc71; background:none; border:none; margin-right:5px; cursor:pointer;" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button><button style="color:#e74c3c; background:none; border:none; cursor:pointer;" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>`);
             });
         }
-
-        /* --- BLOCO DE NOTAS --- */
         function criarNota() {
-            const tit = document.getElementById('note-title');
-            const bod = document.getElementById('note-body');
-            if(!bod.value.trim()) return;
-
+            const tit = document.getElementById('note-title'); const bod = document.getElementById('note-body'); if(!bod.value.trim()) return;
             listaDeNotas.push({ id: Date.now(), titulo: tit.value.trim() || "Nota", texto: bod.value.trim() });
-            localStorage.setItem('minha_agenda_notas', JSON.stringify(listaDeNotas));
-            tit.value = ""; bod.value = "";
-            renderizarNotas();
+            localStorage.setItem('minha_agenda_notas', JSON.stringify(listaDeNotas)); tit.value = ""; bod.value = ""; renderizarNotas();
         }
-
-        function deletarNota(id) {
-            listaDeNotas = listaDeNotas.filter(n => n.id !== id);
-            localStorage.setItem('minha_agenda_notas', JSON.stringify(listaDeNotas));
-            renderizarNotas();
-        }
-
+        function deletarNota(id) { listaDeNotas = listaDeNotas.filter(n => n.id !== id); localStorage.setItem('minha_agenda_notas', JSON.stringify(listaDeNotas)); renderizarNotas(); }
         function renderizarNotas() {
-            const target = document.getElementById('notes-list-target');
-            if (listaDeNotas.length === 0) { target.innerHTML = `<div style="font-size:12px; text-align:center; padding:10px;">Vazio.</div>`; return; }
+            const target = document.getElementById('notes-list-target'); if (listaDeNotas.length === 0) { target.innerHTML = `<div style="font-size:12px; text-align:center; padding:10px;">Sem notas.</div>`; return; }
             target.innerHTML = "";
-            listaDeNotas.forEach(n => {
-                let html = `
-                    <div class="note-card">
-                        <h5>${n.titulo}</h5><p>${n.texto}</p>
-                        <button class="btn-delete-note" onclick="deletarNota(${n.id})"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                `;
-                target.insertAdjacentHTML('beforeend', html);
-            });
+            listaDeNotas.forEach(n => { target.insertAdjacentHTML('beforeend', `<div class="note-card"><h5>${n.titulo}</h5><p>${n.texto}</p><button class="btn-delete-note" onclick="deletarNota(${n.id})"><i class="fa-solid fa-xmark"></i></button></div>`); });
         }
-
-        function atualizarEstatisticasMenu() {
-            document.getElementById('stat-total').textContent = listaDeTarefas.length;
-            let concluidas = listaDeTarefas.filter(t => t.concluida).length;
-            document.getElementById('stat-concluidas').textContent = concluidas;
-            document.getElementById('stat-pendentes').textContent = listaDeTarefas.length - concluidas;
-        }
-
+        function atualizarEstatisticasMenu() { document.getElementById('stat-total').textContent = listaDeTarefas.length; let conc = listaDeTarefas.filter(t => t.concluida).length; document.getElementById('stat-concluidas').textContent = conc; document.getElementById('stat-pendentes').textContent = listaDeTarefas.length - conc; }
         function onSignIn(response) {}
     </script>
 </body>
