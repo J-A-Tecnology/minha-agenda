@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Agendamento Inteligente</title>
     <style>
+        /* O DESIGN ORIGINAL DO TEU SITE */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #121212;
@@ -16,6 +17,8 @@
             max-width: 800px;
             margin: 0 auto;
         }
+        
+        /* Barra de Backup e Status */
         .header-actions {
             display: flex;
             justify-content: space-between;
@@ -25,24 +28,9 @@
             padding: 15px;
             border-radius: 8px;
         }
-        .btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-status { background-color: #2e7d32; color: white; cursor: default; }
-        .btn-backup { background-color: #0288d1; color: white; }
-        .btn-restore { background-color: #f57c00; color: white; }
-        
-        .backup-controls {
-            display: flex;
-            gap: 10px;
-        }
+        .btn-status { background-color: #2e7d32; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: default; }
+        .btn-backup { background-color: #0288d1; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 10px; }
+        .btn-restore { background-color: #f57c00; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         #file-input { display: none; }
 
         .form-agenda {
@@ -51,31 +39,45 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        
+        /* Alinhamento dos teus campos originais */
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
         .form-group {
+            flex: 1;
+            min-width: 180px;
             margin-bottom: 15px;
         }
-        label { display: block; margin-bottom: 5px; color: #b3b3b3; }
+        label { display: block; margin-bottom: 8px; color: #b3b3b3; font-size: 14px; }
         input, select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: #2a2a2a;
             border: 1px solid #3a3a3a;
             color: white;
             border-radius: 5px;
             box-sizing: border-box;
+            font-size: 14px;
         }
+        
         .btn-add {
             width: 100%;
-            background-color: #00bcd4;
-            color: black;
+            background-color: #1abc9c;
+            color: white;
             font-size: 16px;
-            padding: 12px;
+            padding: 14px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
+            margin-top: 10px;
         }
 
+        /* Lista de Tarefas Estilizada */
         .lista-tarefas {
             background-color: #1e1e1e;
             padding: 20px;
@@ -85,32 +87,37 @@
             background-color: #2a2a2a;
             padding: 15px;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 5px solid #00bcd4;
         }
         .info-tarefa {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
-        .hora-tarefa { color: #00bcd4; font-weight: bold; }
-        .titulo-tarefa { font-size: 16px; }
+        .linha-topo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hora-tarefa { color: #1abc9c; font-weight: bold; }
+        .data-tarefa { color: #888; font-size: 12px; }
+        .titulo-tarefa { font-size: 18px; font-weight: 500; }
+        .subtarefas-lista { font-size: 13px; color: #aaaaaa; margin-top: 4px; font-style: italic; }
         .badge-tarefa {
-            font-size: 12px;
+            font-size: 11px;
             background-color: #3a3a3a;
-            padding: 2px 6px;
+            padding: 3px 8px;
             border-radius: 4px;
-            width: max-content;
             color: #b3b3b3;
         }
         .btn-deletar {
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
         }
         .texto-vazio {
             color: #b3b3b3;
@@ -123,11 +130,10 @@
 
 <div class="container">
     <div class="header-actions">
-        <button class="btn btn-status" id="btn-status-conexao">✨ Modo Local Ativo (Sem Firebase)</button>
-        
-        <div class="backup-controls">
-            <button class="btn btn-backup" onclick="exportarBackup()">📥 Salvar Backup</button>
-            <button class="btn btn-restore" onclick="document.getElementById('file-input').click()">📤 Restaurar Backup</button>
+        <button class="btn-status">✨ Modo Local Seguro Ativo</button>
+        <div>
+            <button class="btn-backup" onclick="exportarBackup()">📥 Salvar Backup</button>
+            <button class="btn-restore" onclick="document.getElementById('file-input').click()">📤 Restaurar Backup</button>
             <input type="file" id="file-input" accept=".json" onchange="importarBackup(event)">
         </div>
     </div>
@@ -135,23 +141,58 @@
     <div class="form-agenda">
         <h2>+ Painel de Agendamento Inteligente</h2>
         <form id="form-tarefa" onsubmit="adicionarNovaTarefa(event)">
+            
             <div class="form-group">
-                <label>O que vai fazer?</label>
+                <label>O que você vai fazer?</label>
                 <input type="text" id="tarefa-titulo" placeholder="Ex: Treino de Perna, Estudar Inglês..." required>
             </div>
-            <div class="form-group">
-                <label>Frequência / Rotina</label>
-                <select id="tarefa-tipo">
-                    <option value="Tarefa Única">Tarefa Única</option>
-                    <option value="Rotina Diária">Rotina Diária</option>
-                    <option value="Semanal">Semanal</option>
-                </select>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Frequência / Rotina</label>
+                    <select id="tarefa-tipo">
+                        <option value="Tarefa Única">Tarefa Única</option>
+                        <option value="Rotina Diária">Rotina Diária</option>
+                        <option value="Semanal">Semanal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Categoria (Cor)</label>
+                    <select id="tarefa-cor">
+                        <option value="#3498db">🔵 Padrão (Azul)</option>
+                        <option value="#e74c3c">🔴 Importante (Vermelho)</option>
+                        <option value="#2ecc71">🟢 Saúde (Verde)</option>
+                        <option value="#f1c40f">🟡 Estudos (Amarelo)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ícone Temático</label>
+                    <select id="tarefa-icone">
+                        <option value="📌">📌 Geral</option>
+                        <option value="💪">💪 Treino / Saúde</option>
+                        <option value="📚">📚 Estudos</option>
+                        <option value="💼">💼 Trabalho</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Horário</label>
-                <input type="time" id="tarefa-hora" required>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" id="tarefa-data" required>
+                </div>
+                <div class="form-group">
+                    <label>Horário</label>
+                    <input type="time" id="tarefa-hora" required>
+                </div>
             </div>
-            <button type="submit" class="btn btn-add">Adicionar na Agenda (+XP)</button>
+
+            <div class="form-group">
+                <label>Subtarefas / Checklist <span style="font-size:11px; color:#888;">(Separe os itens por vírgula)</span></label>
+                <input type="text" id="tarefa-subtarefas" placeholder="Ex: Aquecimento, Agachamento, Cardio">
+            </div>
+
+            <button type="submit" class="btn-add">Adicionar na Agenda (+XP)</button>
         </form>
     </div>
 
@@ -163,14 +204,13 @@
 </div>
 
 <script>
-    // Gestão do Banco de Dados Local (Armazenamento no Navegador)
+    // Configuração do Banco Local Inteligente
     const dbLocalStorage = {
         getTarefas: function() {
             const dados = localStorage.getItem('ja_agenda_tarefas');
-            // Mantém as suas tarefas padrão salvas caso o banco inicie zerado
             return dados ? JSON.parse(dados) : [
-                { id: "1779458301815", titulo: "João", hora: "13:00", tipo: "Tarefa Única" },
-                { id: "1779457320288", titulo: "jodfa", hora: "09:08", tipo: "Rotina Diária" }
+                { id: "1", titulo: "João", hora: "13:00", data: new Date().toISOString().split('T')[0], tipo: "Tarefa Única", cor: "#3498db", icone: "📌", subtarefas: "Exemplo de item" },
+                { id: "2", titulo: "jodfa", hora: "09:08", data: new Date().toISOString().split('T')[0], tipo: "Rotina Diária", cor: "#3498db", icone: "📌", subtarefas: "" }
             ];
         },
         salvarTarefas: function(tarefas) {
@@ -178,40 +218,43 @@
         }
     };
 
-    // Função de renderização do ícone da lixeira (Evita o erro de undefined)
     function renderizarLixeira(id) {
         return `<button type="button" onclick="removerTarefa('${id}')" class="btn-deletar" title="Apagar tarefa">🗑️</button>`;
     }
 
-    // Adiciona uma nova atividade na memória local
+    // Captura todos os teus campos originais na hora de salvar
     function adicionarNovaTarefa(event) {
         event.preventDefault();
         
         const titulo = document.getElementById('tarefa-titulo').value;
         const tipo = document.getElementById('tarefa-tipo').value;
+        const cor = document.getElementById('tarefa-cor').value;
+        const icone = document.getElementById('tarefa-icone').value;
+        const data = document.getElementById('tarefa-data').value;
         const hora = document.getElementById('tarefa-hora').value;
+        const subtarefas = document.getElementById('tarefa-subtarefas').value;
         const id = Date.now().toString();
 
         const novasTarefas = dbLocalStorage.getTarefas();
-        novasTarefas.push({ id, titulo, hora, tipo });
+        novasTarefas.push({ id, titulo, tipo, cor, icone, data, hora, subtarefas });
         
         dbLocalStorage.salvarTarefas(novasTarefas);
         carregarTarefasNaTela();
         
         document.getElementById('form-tarefa').reset();
+        configurarDataPadrao();
     }
 
-    // Remove a atividade selecionada
     function removerTarefa(id) {
-        if(confirm("Tens a certeza que desejas apagar esta atividade?")) {
+        if(confirm("Deseja apagar esta atividade?")) {
             let tarefas = dbLocalStorage.getTarefas();
-            tarefas = tarefas.filter(t => t.id !== id);
+            tarefas = tareas.filter(t => t.id !== id);
             dbLocalStorage.salvarTarefas(tarefas);
             carregarTarefasNaTela();
         }
     }
 
-    // Desenha as atividades ordenadas por hora na interface
+    // Desenha as tarefas respeitando as cores de categoria e ícones escolhidos
     function carregarTarefasNaTela() {
         const tarefas = dbLocalStorage.getTarefas();
         const container = document.getElementById('container-tarefas');
@@ -225,69 +268,71 @@
             return;
         }
 
-        container.innerHTML = tarefas.map(tarefa => `
-            <div class="card-tarefa" id="tarefa-${tarefa.id}">
-                <div class="info-tarefa">
-                    <span class="hora-tarefa">⏰ ${tarefa.hora}</span>
-                    <span class="titulo-tarefa">${tarefa.titulo}</span>
-                    <span class="badge-tarefa">${tarefa.tipo}</span>
+        container.innerHTML = tarefas.map(tarefa => {
+            // Formata a data de AAAA-MM-DD para DD/MM/AAAA
+            const dataFormatada = tarefa.data ? tarefa.data.split('-').reverse().join('/') : '';
+            
+            return `
+                <div class="card-tarefa" id="tarefa-${tarefa.id}" style="border-left: 6px solid ${tarefa.cor || '#3498db'};">
+                    <div class="info-tarefa">
+                        <div class="linha-topo">
+                            <span class="hora-tarefa">⏰ ${tarefa.hora}</span>
+                            <span class="data-tarefa">📅 ${dataFormatada}</span>
+                            <span class="badge-tarefa">${tarefa.tipo}</span>
+                        </div>
+                        <div class="titulo-tarefa">${tarefa.icone || '📌'} ${tarefa.titulo}</div>
+                        ${tarefa.subtarefas ? `<div class="subtarefas-lista">📋 Subtarefas: ${tarefa.subtarefas}</div>` : ''}
+                    </div>
+                    <div class="acoes-tarefa">
+                        ${renderizarLixeira(tarefa.id)}
+                    </div>
                 </div>
-                <div class="acoes-tarefa">
-                    ${renderizarLixeira(tarefa.id)}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    // ==========================================
-    // SISTEMA DE SEGURANÇA: EXPORTAÇÃO E IMPORTAÇÃO
-    // ==========================================
-
+    // Sistema de Backup e Restauro (.json)
     function exportarBackup() {
         const tarefas = dbLocalStorage.getTarefas();
-        const dadosTexto = JSON.stringify(tarefas, null, 2);
-        
-        const blob = new Blob([dadosTexto], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(tarefas, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        
-        const linkTemp = document.createElement('a');
-        linkTemp.href = url;
-        linkTemp.download = `backup_agenda_${new Date().toISOString().split('T')[0]}.json`;
-        
-        document.body.appendChild(linkTemp);
-        linkTemp.click();
-        document.body.removeChild(linkTemp);
-        URL.revokeObjectURL(url);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `backup_agenda_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function importarBackup(event) {
         const arquivo = event.target.files[0];
         if (!arquivo) return;
-
         const leitor = new FileReader();
         leitor.onload = function(e) {
             try {
-                const tarefasImportadas = JSON.parse(e.target.result);
-                
-                if (Array.isArray(tarefasImportadas)) {
-                    dbLocalStorage.salvarTarefas(tarefasImportadas);
+                const tarefas = JSON.parse(e.target.result);
+                if (Array.isArray(tarefas)) {
+                    dbLocalStorage.salvarTarefas(tarefas);
                     carregarTarefasNaTela();
-                    alert("Backup restaurado com sucesso!");
-                } else {
-                    alert("Erro: O arquivo de backup não é compatível.");
+                    alert("Backup carregado com sucesso!");
                 }
-            } catch (erro) {
-                alert("Erro ao ler o arquivo. Certifique-se de carregar o arquivo .json correto.");
-            }
+            } catch (err) { alert("Arquivo inválido."); }
         };
         leitor.readAsText(arquivo);
-        event.target.value = '';
+    }
+
+    function configurarDataPadrao() {
+        const inputData = document.getElementById('tarefa-data');
+        if(inputData) {
+            inputData.value = new Date().toISOString().split('T')[0];
+        }
     }
 
     window.renderizarLixeira = renderizarLixeira;
     window.removerTarefa = removerTarefa;
     
     document.addEventListener('DOMContentLoaded', () => {
+        configurarDataPadrao();
         carregarTarefasNaTela();
     });
 </script>
