@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Agenda Ultimate Pro Dashboard</title>
     
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        window.fbModules = { initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, getFirestore, doc, setDoc, getDoc, onSnapshot };
+    </script>
 
     <style>
         :root {
@@ -73,7 +80,6 @@
             position: relative;
         }
 
-        /* Adesivos Coláveis */
         .sticker {
             position: absolute;
             font-size: 50px;
@@ -101,7 +107,6 @@
         }
         .sticker:hover .btn-del-sticker { display: flex; }
 
-        /* Menu Lateral Sidebar */
         .sidebar { 
             position: fixed; top: 0; left: -380px; width: 380px; height: 100%; 
             background-color: var(--sidebar-bg); 
@@ -122,41 +127,41 @@
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; }
         .sidebar-close { background: none; border: none; color: #bdc3c7; font-size: 20px; cursor: pointer; }
 
-        /* Cabeçalho Principal */
         .header-main { display: flex; justify-content: space-between; align-items: center; background-color: var(--header-bg); padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; flex-wrap: wrap; gap: 15px; border: 1px solid var(--border-color); }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-btn { background-color: #34495e; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 18px; cursor: pointer; }
         .title-area h1 { font-size: 24px; color: #3498db; }
-        .auth-block { margin-top: 8px; min-height: 45px; display: block !important; }
+        
+        /* Botões de Login Customizados */
+        .auth-block { margin-top: 8px; }
+        .btn-google-login { background: #fff; color: #444; border: 1px solid #ddd; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .btn-google-login:hover { background: #f5f5f5; }
+        .user-logged-info { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
+        .user-logged-info img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #3498db; }
+        .btn-logout { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 12px; text-decoration: underline; padding: 0; }
 
-        /* Widgets do Topo */
         .header-widgets { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .clock-container { background-color: #1a252f; color: #fff; padding: 10px 20px; border-radius: 6px; text-align: right; font-weight: bold; }
         .clock-time { font-size: 20px; letter-spacing: 1px; color: #3498db; }
         .clock-date { font-size: 11px; color: #bdc3c7; margin-top: 2px; }
 
-        /* Pomodoro Timer */
         .pomodoro-box { background: #e74c3c; color: white; padding: 10px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .pomo-editable, .pomo-editable-time { border-bottom: 1px dashed white; cursor: pointer; padding: 0 2px; }
         .pomo-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
-        /* Gamificação */
         .gamification-banner { background: linear-gradient(135deg, #8e44ad, #3498db); padding: 15px; border-radius: 6px; margin-bottom: 15px; color: white; }
         .xp-bar-container { background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 8px; overflow: hidden; height: 12px; }
         .xp-bar-fill { background: #2ecc71; height: 100%; width: 0%; transition: width 0.4s; }
 
-        /* Abas do Menu */
         .menu-tabs { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn { flex: 1; padding: 10px 4px; background: rgba(255,255,255,0.15); border: none; color: #e2e8f0; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; text-align: center; }
         .tab-btn.active { background: #3498db; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Área do Menu de Cores */
         .theme-select-box { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
         .theme-option-btn { padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
-        /* Ajuste Fino da Grade de Emojis */
         .sticker-selector-container { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1); }
         .sticker-scroll-grid { 
             display: grid !important; 
@@ -177,7 +182,6 @@
         .io-btn { background: #34495e; color: white; border: 1px solid #555; padding: 10px; font-size: 13px; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .excel-btn { background: #2ecc71 !important; color: white !important; border: none !important; }
 
-        /* Janela Modal Pop-up do Bloco de Notas */
         .notes-popup-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 3000; padding: 20px; }
         .notes-popup-modal.active { display: flex; }
         .notes-popup-card { background: var(--bg-card); color: var(--text-main); width: 100%; max-width: 800px; height: 85vh; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--border-color); animation: fadeIn 0.2s ease-out; }
@@ -192,12 +196,10 @@
         .mini-note-item.archived-style { border-left: 4px solid #95a5a6; opacity: 0.7; }
         .note-badge-archived { font-size: 10px; background: #95a5a6; color: white; padding: 1px 4px; border-radius: 3px; }
 
-        /* Modos de Visualização Principal */
         .view-switcher { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
         .view-btn { padding: 10px 20px; border: none; background-color: var(--bg-card); color: var(--text-main); font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s; border: 1px solid var(--border-color); }
         .view-btn.active { background-color: #3498db; color: white; border-color: #3498db; }
 
-        /* Calendários e Listas */
         .navigation-bar { display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-card); padding: 12px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border-color); }
         .nav-btn { background-color: #2980b9; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .current-date { font-size: 18px; font-weight: bold; }
@@ -209,7 +211,6 @@
         .btn-add { width: 100%; background-color: #2a9d8f; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         .btn-edit-mode { background-color: #e67e22 !important; }
 
-        /* Visões Expandidas */
         .week-view-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .week-day-card { background-color: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; text-align: center; }
         .week-day-card.selected { border-color: #3498db; background-color: rgba(52, 152, 219, 0.1); }
@@ -220,7 +221,6 @@
         .month-cell.other-month { opacity: 0.35; }
         .month-task-indicator { background: #e67e22; width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 2px; }
 
-        /* Itens de Tarefa */
         .task-item { display: flex; flex-direction: column; gap: 10px; padding: 15px; background-color: rgba(0,0,0,0.02); border-radius: 6px; margin-top: 10px; border: 1px solid var(--border-color); position: relative; }
         .task-top-wrapper { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .task-item.cor-azul { border-left: 6px solid #3498db; }
@@ -235,7 +235,6 @@
         
         .btn-edit-task { background: none; border: none; color: #e67e22; cursor: pointer; font-size: 15px; }
 
-        /* Subtarefas */
         .subtasks-wrapper { background: var(--bg-card); padding: 8px 12px; border-radius: 4px; margin-top: 5px; border: 1px solid var(--border-color); }
         .subtask-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 4px 0; }
         .subtask-row.done { text-decoration: line-through; opacity: 0.6; }
@@ -302,8 +301,7 @@
 
                 <div class="sticker-selector-container">
                     <h4 style="font-size: 12px; text-transform: uppercase; color:#bdc3c7; margin-bottom:8px;">Adesivos (+1000 Disponíveis)</h4>
-                    <div class="sticker-scroll-grid" id="sticker-box-target">
-                        </div>
+                    <div class="sticker-scroll-grid" id="sticker-box-target"></div>
                 </div>
 
                 <hr style="margin: 20px 0; border-color: rgba(255,255,255,0.2);">
@@ -345,9 +343,8 @@
             <button class="menu-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
             <div class="title-area">
                 <h1>Minha Agenda Pro</h1>
-                <div class="auth-block">
-                    <div id="g_id_onload" data-client_id="884588851940-hu3aqqoc1ciibip94o8r5kn1snraahom.apps.googleusercontent.com" data-callback="onSignIn" data-auto_prompt="false"></div>
-                    <div class="g_id_signin" data-type="standard"></div>
+                <div class="auth-block" id="firebase-auth-target">
+                    <button class="btn-google-login" onclick="loginComGoogle()"><i class="fa-brands fa-google" style="color: #4285F4;"></i> Entrar com o Google</button>
                 </div>
             </div>
         </div>
@@ -443,17 +440,28 @@
     </section>
 
     <script>
+        // --- INSIRA SUAS CREDENCIAIS DO FIREBASE ABAIXO ---
+        const firebaseConfig = {
+            apiKey: "COLOQUE_AQUI_SUA_API_KEY",
+            authDomain: "COLOQUE_AQUI_SEU_AUTH_DOMAIN",
+            projectId: "COLOQUE_AQUI_SEU_PROJECT_ID",
+            storageBucket: "COLOQUE_AQUI_SEU_STORAGE_BUCKET",
+            messagingSenderId: "COLOQUE_AQUI_SEU_MESSAGING_SENDER_ID",
+            appId: "COLOQUE_AQUI_SEU_APP_ID"
+        };
+
+        let db, auth, currentUser = null;
         let dataAtual = new Date("2026-05-22T00:00:00");
         let modoVisualizacao = 'dia';
         let idTarefaEmEdicao = null;
         let idNotaEmEdicao = null;
         
-        let listaDeTarefas = JSON.parse(localStorage.getItem('minha_agenda_tarefas')) || [];
-        let lixeiraDeTarefas = JSON.parse(localStorage.getItem('minha_agenda_lixeira')) || [];
-        let listaDeNotas = JSON.parse(localStorage.getItem('minha_agenda_notes')) || [];
-        let listaDeStickers = JSON.parse(localStorage.getItem('minha_agenda_stickers')) || [];
-        let userXP = parseInt(localStorage.getItem('minha_agenda_xp')) || 0;
-        let userLevel = parseInt(localStorage.getItem('minha_agenda_level')) || 1;
+        let listaDeTarefas = [];
+        let lixeiraDeTarefas = [];
+        let listaDeNotas = [];
+        let listaDeStickers = [];
+        let userXP = 0;
+        let userLevel = 1;
 
         let pomoInterval = null;
         let pomoMinutosPadrao = 25;
@@ -461,15 +469,100 @@
         let pomoNomeCustomizado = "Foco";
 
         document.addEventListener('DOMContentLoaded', function () {
+            const { initializeApp, getAuth, GoogleAuthProvider, onAuthStateChanged, getFirestore } = window.fbModules;
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
             mudarTema(localStorage.getItem('minha_agenda_tema') || 'claro');
             aplicarFundoSalvo();
             startClock();
-            atualizarInterface();
-            renderizerLixeira();
-            atualizarGamificacaoUI();
-            renderizarStickers();
             montarCatalogoEmojis();
+
+            // Monitora o login usando o e-mail como chave de busca na nuvem
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    atualizarElementoAuthUI(user);
+                    escutarDadosNuvem(user.email);
+                } else {
+                    currentUser = null;
+                    resetarDadosInterfaceParaDeslogado();
+                }
+            });
         });
+
+        /* --- CONEXÃO FIREBASE (Sincronização por E-mail) --- */
+        function loginComGoogle() {
+            const { signInWithPopup, GoogleAuthProvider } = window.fbModules;
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(err => alert("Erro ao fazer login: " + err.message));
+        }
+
+        function fazerLogout() {
+            window.fbModules.signOut(auth).then(() => {
+                window.location.reload();
+            });
+        }
+
+        function atualizarElementoAuthUI(user) {
+            const container = document.getElementById('firebase-auth-target');
+            container.innerHTML = `
+                <div class="user-logged-info">
+                    <img src="${user.photoURL || 'https://via.placeholder.com/30'}" alt="Avatar">
+                    <div>
+                        <strong>${user.displayName}</strong><br>
+                        <button class="btn-logout" onclick="fazerLogout()">Sair da Conta</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function resetarDadosInterfaceParaDeslogado() {
+            document.getElementById('firebase-auth-target').innerHTML = `
+                <button class="btn-google-login" onclick="loginComGoogle()"><i class="fa-brands fa-google" style="color: #4285F4;"></i> Entrar com o Google</button>
+            `;
+            listaDeTarefas = []; lixeiraDeTarefas = []; listaDeNotas = []; listaDeStickers = [];
+            userXP = 0; userLevel = 1;
+            atualizarInterface();
+            renderizarStickers();
+        }
+
+        // Puxa as informações da coleção 'agendas' mapeadas pelo e-mail
+        function escutarDadosNuvem(userEmail) {
+            const { doc, onSnapshot } = window.fbModules;
+            onSnapshot(doc(db, "agendas", userEmail), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    listaDeTarefas = data.tarefas || [];
+                    lixeiraDeTarefas = data.lixeira || [];
+                    listaDeNotas = data.notas || [];
+                    listaDeStickers = data.stickers || [];
+                    userXP = data.xp || 0;
+                    userLevel = data.level || 1;
+                } else {
+                    listaDeTarefas = []; lixeiraDeTarefas = []; listaDeNotas = []; listaDeStickers = [];
+                    userXP = 0; userLevel = 1;
+                }
+                atualizarInterface();
+                renderizarLixeira();
+                atualizarGamificacaoUI();
+                renderizarStickers();
+            });
+        }
+
+        async function salvarDadosNaNuvem() {
+            if (!currentUser || !currentUser.email) return;
+            const { doc, setDoc } = window.fbModules;
+            await setDoc(doc(db, "agendas", currentUser.email), {
+                tarefas: listaDeTarefas,
+                lixeira: lixeiraDeTarefas,
+                notas: listaDeNotas,
+                stickers: listaDeStickers,
+                xp: userXP,
+                level: userLevel
+            }, { merge: true });
+        }
 
         function startClock() {
             setInterval(() => {
@@ -513,7 +606,7 @@
             }
         }
 
-        /* --- MONTAGEM COMPLETA DA GRADE DE EMORIS --- */
+        /* --- ADESIVOS --- */
         function montarCatalogoEmojis() {
             const target = document.getElementById('sticker-box-target');
             let emojis = [];
@@ -527,16 +620,15 @@
         }
 
         function adicionarSticker(emoji) {
+            if(!currentUser) { alert("Faça login para colocar adesivos!"); return; }
             const novoSticker = { id: Date.now(), emoji: emoji, x: 250, y: 250 };
             listaDeStickers.push(novoSticker);
-            localStorage.setItem('minha_agenda_stickers', JSON.stringify(listaDeStickers));
-            renderizarStickers();
+            salvarDadosNaNuvem();
         }
 
         function deletarSticker(id) {
             listaDeStickers = listaDeStickers.filter(s => s.id !== id);
-            localStorage.setItem('minha_agenda_stickers', JSON.stringify(listaDeStickers));
-            renderizarStickers();
+            salvarDadosNaNuvem();
         }
 
         function renderizarStickers() {
@@ -553,21 +645,23 @@
             elmnt.onmousedown = dragMouseDown; elmnt.ontouchstart = dragMouseDown;
             function dragMouseDown(e) {
                 e = e || window.event; if(e.target.className === 'btn-del-sticker') return;
-                const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
+                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : e.clientX); 
+                const clientY = e.clientY || (e.touches ? e.touches[0].clientY : e.clientY);
                 pos3 = clientX; pos4 = clientY;
                 document.onmouseup = closeDragElement; document.onmousemove = elementDrag;
                 document.ontouchend = closeDragElement; document.ontouchmove = elementDrag;
             }
             function elementDrag(e) {
                 e = e || window.event;
-                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : pos3); const clientY = e.clientY || (e.touches ? e.touches[0].clientY : pos4);
+                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : pos3); 
+                const clientY = e.clientY || (e.touches ? e.touches[0].clientY : pos4);
                 pos1 = pos3 - clientX; pos2 = pos4 - clientY; pos3 = clientX; pos4 = clientY;
                 elmnt.style.top = (elmnt.offsetTop - pos2) + "px"; elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
             }
             function closeDragElement() {
                 document.onmouseup = null; document.onmousemove = null; document.ontouchend = null; document.ontouchmove = null;
                 listaDeStickers = listaDeStickers.map(st => { if(st.id === id) { st.x = elmnt.offsetLeft; st.y = elmnt.offsetTop; } return st; });
-                localStorage.setItem('minha_agenda_stickers', JSON.stringify(listaDeStickers));
+                salvarDadosNaNuvem();
             }
         }
 
@@ -594,7 +688,7 @@
                 target.insertAdjacentHTML('beforeend', `
                     <div class="mini-note-item ${isArq ? 'archived-style' : ''}" onclick="carregarNotaParaEdicao(${n.id})">
                         <strong style="font-size:13px; display:block;">${n.titulo || 'Sem título'}</strong>
-                        <span style="font-size:11px; opacity:0.7;">${n.texto.substring(0, 20)}...</span>
+                        <span style="font-size:11px; opacity:0.7;">${n.texto ? n.texto.substring(0, 20) : ''}...</span>
                         ${isArq ? '<span class="note-badge-archived" style="margin-top:4px; display:inline-block;">Arquivada</span>' : ''}
                     </div>
                 `);
@@ -615,6 +709,7 @@
         }
 
         function salvarNotaMódulo() {
+            if(!currentUser) { alert("Faça login para salvar anotações!"); return; }
             const tit = document.getElementById('note-title').value.trim();
             const bod = document.getElementById('note-body').value.trim();
             if(!bod) { alert("Escreva um texto para salvar!"); return; }
@@ -624,30 +719,30 @@
             } else {
                 listaDeNotas.push({ id: Date.now(), titulo: tit || "Nota", texto: bod, arquivada: false });
             }
-            localStorage.setItem('minha_agenda_notes', JSON.stringify(listaDeNotas));
             idNotaEmEdicao = null;
             document.getElementById('note-title').value = ""; document.getElementById('note-body').value = "";
             document.getElementById('btn-archive-note').style.display = 'none'; document.getElementById('btn-delete-note-real').style.display = 'none';
+            salvarDadosNaNuvem();
             renderizarListaDeNotasModulo();
         }
 
         function alternarArquivamentoNota() {
             if(idNotaEmEdicao === null) return;
             listaDeNotas = listaDeNotas.map(n => { if(n.id === idNotaEmEdicao) n.arquivada = !n.arquivada; return n; });
-            localStorage.setItem('minha_agenda_notes', JSON.stringify(listaDeNotas));
             idNotaEmEdicao = null;
             document.getElementById('note-title').value = ""; document.getElementById('note-body').value = "";
             document.getElementById('btn-archive-note').style.display = 'none'; document.getElementById('btn-delete-note-real').style.display = 'none';
+            salvarDadosNaNuvem();
             renderizarListaDeNotasModulo();
         }
 
         function deletarNotaMódulo() {
             if(idNotaEmEdicao === null) return;
             listaDeNotas = listaDeNotas.filter(n => n.id !== idNotaEmEdicao);
-            localStorage.setItem('minha_agenda_notes', JSON.stringify(listaDeNotas));
             idNotaEmEdicao = null;
             document.getElementById('note-title').value = ""; document.getElementById('note-body').value = "";
             document.getElementById('btn-archive-note').style.display = 'none'; document.getElementById('btn-delete-note-real').style.display = 'none';
+            salvarDadosNaNuvem();
             renderizarListaDeNotasModulo();
         }
 
@@ -675,6 +770,7 @@
         }
 
         function salvarTarefa() {
+            if(!currentUser) { alert("Faça login para salvar suas tarefas!"); return; }
             const nameInput = document.getElementById('task-name'); const subInput = document.getElementById('task-subtasks'); const nome = nameInput.value.trim();
             if (!nome) { alert("Preencha a descrição!"); return; }
 
@@ -696,7 +792,8 @@
                 listaDeTarefas.push({ id: Date.now(), nome: nome, frequencia: document.getElementById('task-frequency').value, categoria: document.getElementById('task-category').value, icone: document.getElementById('task-icon').value, data: document.getElementById('task-date-input').value, horario: document.getElementById('task-time').value || "Sem hora", concluida: false, subtarefas: subtarefasFiltradas });
                 adicionarXP(15);
             }
-            localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas)); nameInput.value = ""; subInput.value = ""; atualizarInterface();
+            nameInput.value = ""; subInput.value = ""; 
+            salvarDadosNaNuvem();
         }
 
         function exportarParaExcel() {
@@ -728,14 +825,26 @@
         function navegarData(dir) { if (modoVisualizacao === 'dia') dataAtual.setDate(dataAtual.getDate() + dir); else if (modoVisualizacao === 'semana') dataAtual.setDate(dataAtual.getDate() + (dir * 7)); else if (modoVisualizacao === 'mes') dataAtual.setMonth(dataAtual.getMonth() + dir); atualizarInterface(); }
         function formatarDataString(dateObj) { return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`; }
         function selecionarDataDireta(iso) { dataAtual = new Date(iso); atualizarInterface(); }
-        function adicionarXP(q) { userXP += q; if (userXP >= 100) { userXP -= 100; userLevel++; } localStorage.setItem('minha_agenda_xp', userXP); localStorage.setItem('minha_agenda_level', userLevel); atualizarGamificacaoUI(); }
-        function atualizarGamificacaoUI() { document.getElementById('user-level').textContent = userLevel; document.getElementById('xp-fill-bar').style.width = `${userXP}%`; }
-        function alternarConclusaoTarefa(id) { listaDeTarefas = listaDeTarefas.map(t => { if (t.id === id) { t.concluida = !t.concluida; if(t.concluida) { adicionarXP(20); if(t.subtarefas) t.subtarefas.forEach(s => s.concluida = true); } } return t; }); localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas)); atualizarInterface(); }
-        function alternarSubtarefa(tId, sId) { listaDeTarefas = listaDeTarefas.map(t => { if (t.id === tId) { t.subtarefas = t.subtarefas.map(s => { if (s.id === sId) { s.concluida = !s.concluida; if(s.concluida) adicionarXP(5); } return s; }); } return t; }); localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas)); atualizarInterface(); }
         
-        function moverParaLixeira(id) { const item = listaDeTarefas.find(t => t.id === id); if (item) { lixeiraDeTarefas.push(item); listaDeTarefas = listaDeTarefas.filter(t => t.id !== id); localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas)); localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas)); atualizarInterface(); renderizerLixeira(); } }
-        function restaurarTarefa(id) { const item = lixeiraDeTarefas.find(t => t.id === id); if (item) { listaDeTarefas.push(item); lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas)); localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas)); atualizarInterface(); renderizerLixeira(); } }
-        function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas)); renderizerLixeira(); atualizarEstatisticasMenu(); }
+        function adicionarXP(q) { 
+            userXP += q; 
+            if (userXP >= 100) { userXP -= 100; userLevel++; } 
+            atualizarGamificacaoUI();
+        }
+        function atualizarGamificacaoUI() { document.getElementById('user-level').textContent = userLevel; document.getElementById('xp-fill-bar').style.width = `${userXP}%`; }
+        
+        function alternarConclusaoTarefa(id) { 
+            listaDeTarefas = listaDeTarefas.map(t => { if (t.id === id) { t.concluida = !t.concluida; if(t.concluida) { adicionarXP(20); if(t.subtarefas) t.subtarefas.forEach(s => s.concluida = true); } } return t; }); 
+            salvarDadosNaNuvem();
+        }
+        function alternarSubtarefa(tId, sId) { 
+            listaDeTarefas = listaDeTarefas.map(t => { if (t.id === tId) { t.subtarefas = t.subtarefas.map(s => { if (s.id === sId) { s.concluida = !s.concluida; if(s.concluida) adicionarXP(5); } return s; }); } return t; }); 
+            salvarDadosNaNuvem();
+        }
+        
+        function moverParaLixeira(id) { const item = listaDeTarefas.find(t => t.id === id); if (item) { lixeiraDeTarefas.push(item); listaDeTarefas = listaDeTarefas.filter(t => t.id !== id); salvarDadosNaNuvem(); } }
+        function restaurarTarefa(id) { const item = lixeiraDeTarefas.find(t => t.id === id); if (item) { listaDeTarefas.push(item); lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); salvarDadosNaNuvem(); } }
+        function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); salvarDadosNaNuvem(); }
         
         function renderizerLixeira() { const container = document.getElementById('trash-list-target'); document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length; if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; opacity:0.6;">Lixeira vazia.</div>`; return; } container.innerHTML = ""; lixeiraDeTarefas.forEach(t => { container.insertAdjacentHTML('beforeend', `<div class="trash-item" style="display:flex; justify-content:between; align-items:center;"><div><strong>${t.nome}</strong></div><div><button style="color:#2ecc71; background:none; border:none; margin-right:8px; cursor:pointer;" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button><button style="color:#e74c3c; background:none; border:none; cursor:pointer;" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>`); }); }
         function atualizarEstatisticasMenu() { document.getElementById('stat-total').textContent = listaDeTarefas.length; let conc = listaDeTarefas.filter(t => t.concluida).length; document.getElementById('stat-concluidas').textContent = conc; document.getElementById('stat-pendentes').textContent = listaDeTarefas.length - conc; }
@@ -760,8 +869,7 @@
         }
 
         function exportarDados() { const backup = { tarefas: listaDeTarefas, lixeira: lixeiraDeTarefas, notas: listaDeNotas, xp: userXP, level: userLevel, stickers: listaDeStickers }; const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup)); const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "agenda_backup.json"); document.body.appendChild(a); a.click(); a.remove(); }
-        function importarDados(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(evt) { try { const d = JSON.parse(evt.target.result); if (d.tarefas) { listaDeTarefas = d.tarefas; lixeiraDeTarefas = d.lixeira || []; listaDeNotas = d.notas || []; listaDeStickers = d.stickers || []; userXP = d.xp || 0; userLevel = d.level || 1; localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas)); localStorage.setItem('minha_agenda_lixeira', JSON.stringify(lixeiraDeTarefas)); localStorage.setItem('minha_agenda_notes', JSON.stringify(listaDeNotas)); localStorage.setItem('minha_agenda_stickers', JSON.stringify(listaDeStickers)); localStorage.setItem('minha_agenda_xp', userXP); localStorage.setItem('minha_agenda_level', userLevel); window.location.reload(); } } catch (err) { alert("Erro ao importar dados!"); } }; reader.readAsText(file); }
-        function onSignIn(r) {}
+        function importarDados(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(evt) { try { const d = JSON.parse(evt.target.result); if (d.tarefas) { listaDeTarefas = d.tarefas; lixeiraDeTarefas = d.lixeira || []; listaDeNotas = d.notas || []; listaDeStickers = d.stickers || []; userXP = d.xp || 0; userLevel = d.level || 1; salvarDadosNaNuvem(); } } catch (err) { alert("Erro ao importar dados!"); } }; reader.readAsText(file); }
     </script>
 </body>
 </html>
