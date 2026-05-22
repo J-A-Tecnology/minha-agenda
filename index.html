@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Agenda</title>
+    <title>Minha Agenda Pro</title>
     
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -26,27 +26,52 @@
         .clock-time { font-size: 20px; letter-spacing: 1px; color: #3498db; }
         .clock-date { font-size: 11px; color: #bdc3c7; margin-top: 2px; }
 
-        /* Menu Lateral (Sidebar) */
-        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background-color: #2c3e50; color: white; padding: 25px; box-shadow: 4px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease-in-out; z-index: 2000; }
+        /* Menu Lateral (Sidebar) Expandido */
+        .sidebar { position: fixed; top: 0; left: -380px; width: 380px; height: 100%; background-color: #2c3e50; color: white; padding: 25px; box-shadow: 4px 0 10px rgba(0,0,0,0.2); transition: left 0.3s ease-in-out; z-index: 2000; overflow-y: auto; }
         .sidebar.active { left: 0 !important; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #34495e; padding-bottom: 15px; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #34495e; padding-bottom: 15px; }
         .sidebar-close { background: none; border: none; color: #bdc3c7; font-size: 20px; cursor: pointer; }
-        .sidebar-close:hover { color: white; }
-        .stats-panel { background: #34495e; padding: 15px; border-radius: 6px; margin-top: 20px; }
+        
+        /* Abas no Menu Lateral */
+        .menu-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 8px; background: #34495e; border: none; color: #bdc3c7; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .tab-btn.active { background: #3498db; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Painel de Estatísticas */
+        .stats-panel { background: #34495e; padding: 15px; border-radius: 6px; }
         .stats-panel h4 { margin-bottom: 10px; font-size: 14px; color: #3498db; text-transform: uppercase; }
         .stat-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
 
-        /* Overlay para fechar o menu ao clicar fora */
+        /* Seção da Lixeira */
+        .trash-list { max-height: 300px; overflow-y: auto; }
+        .trash-item { background: #34495e; padding: 10px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .trash-actions { display: flex; gap: 8px; }
+        .btn-restore { background: none; border: none; color: #2ecc71; cursor: pointer; font-size: 14px; }
+        .btn-destroy { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 14px; }
+
+        /* Seção do Bloco de Notas */
+        .notes-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .note-input-title { width: 100%; padding: 8px; border-radius: 4px; border: none; font-size: 13px; }
+        .note-input-body { width: 100%; padding: 8px; border-radius: 4px; border: none; font-size: 13px; height: 60px; resize: none; }
+        .btn-save-note { background: #2ecc71; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .notes-container-list { display: flex; flex-direction: column; gap: 10px; }
+        .note-card { background: #f1c40f; color: #2c3e50; padding: 12px; border-radius: 6px; position: relative; box-shadow: 2px 2px 5px rgba(0,0,0,0.15); }
+        .note-card h5 { font-size: 14px; margin-bottom: 4px; padding-right: 20px; font-weight: bold; }
+        .note-card p { font-size: 12px; word-break: break-all; white-space: pre-line; }
+        .btn-delete-note { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #c0392b; cursor: pointer; font-size: 14px; }
+
+        /* Overlay */
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1500; }
         .sidebar-overlay.active { display: block !important; }
 
-        /* Navegação */
+        /* Navegação Principal */
         .navigation-bar { display: flex; justify-content: space-between; align-items: center; background-color: #fff; padding: 12px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .nav-btn { background-color: #2980b9; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .nav-btn:hover { background-color: #2471a3; }
         .current-date { font-size: 18px; font-weight: bold; color: #2c3e50; }
 
-        /* Formulário */
+        /* Formulário Princpal */
         .card-form { background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card-title { font-size: 16px; color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .form-group { margin-bottom: 15px; }
@@ -56,38 +81,32 @@
         .form-col { flex: 1; min-width: 150px; }
         .select-field, .input-date, .input-time { width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 4px; background-color: #fff; font-size: 14px; height: 42px; }
         .notify-box { display: flex; align-items: center; gap: 8px; background-color: #f1f2f6; padding: 10px 15px; border-radius: 4px; height: 42px; width: 100%; justify-content: center; font-size: 13px; font-weight: bold; color: #2c3e50; cursor: pointer; }
-        .btn-add { width: 100%; background-color: #2a9d8f; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
-        .btn-add:hover { background-color: #21867a; }
+        .btn-add { width: 100%; background-color: #2a9d8f; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         
         /* Container de Listagem */
         .tasks-container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .no-tasks { text-align: center; color: #95a5a6; font-size: 14px; padding: 15px 0; }
         .day-label { font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; text-transform: uppercase; }
 
-        /* Cards Individuais de Tarefas */
-        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #f8f9fa; border-radius: 4px; margin-top: 10px; transition: all 0.2s ease; }
+        /* Cards de Tarefas */
+        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #f8f9fa; border-radius: 4px; margin-top: 10px; }
         .task-left-wrapper { display: flex; align-items: center; gap: 12px; flex: 1; }
         
-        /* Cores das Categorias */
         .task-item.cor-azul { border-left: 5px solid #3498db; }
         .task-item.cor-vermelho { border-left: 5px solid #e74c3c; }
         .task-item.cor-verde { border-left: 5px solid #2ecc71; }
         .task-item.cor-amarelo { border-left: 5px solid #f1c40f; }
 
-        /* Checkbox customizado de conclusão */
-        .check-btn { background: none; border: 2px solid #bdc3c7; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 10px; transition: all 0.2s; }
-        .check-btn:hover { border-color: #2ecc71; color: #2ecc71; }
+        .check-btn { background: none; border: 2px solid #bdc3c7; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 10px; }
         
-        /* Estilos para quando a tarefa está Concluída */
         .task-item.completed { opacity: 0.55; background-color: #f1f2f6; }
         .task-item.completed .check-btn { background-color: #2ecc71; border-color: #2ecc71; color: white; }
         .task-item.completed .task-title-text { text-decoration: line-through; color: #7f8c8d; }
 
         .task-info { display: flex; flex-direction: column; gap: 4px; }
-        .task-title-text { font-weight: bold; color: #2c3e50; font-size: 15px; transition: color 0.2s; }
+        .task-title-text { font-weight: bold; color: #2c3e50; font-size: 15px; }
         .task-time-text { font-size: 12px; color: #7f8c8d; }
         .btn-delete { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 16px; padding: 5px; }
-        .btn-delete:hover { color: #c0392b; }
     </style>
 </head>
 <body>
@@ -95,16 +114,39 @@
     <div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3>Menu Agenda</h3>
+            <h3>Painel de Controle</h3>
             <button class="sidebar-close" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <p>Olá, Organização!</p>
+
+        <div class="menu-tabs">
+            <button class="tab-btn active" id="tab-link-stats" onclick="switchTab('stats')"><i class="fa-solid fa-chart-pie"></i> Índices</button>
+            <button class="tab-btn" id="tab-link-notes" onclick="switchTab('notes')"><i class="fa-regular fa-sticky-note"></i> Notas</button>
+            <button class="tab-btn" id="tab-link-trash" onclick="switchTab('trash')"><i class="fa-solid fa-trash"></i> Lixeira (<span id="trash-count-badge">0</span>)</button>
+        </div>
         
-        <div class="stats-panel">
-            <h4>Seu Painel Geral</h4>
-            <div class="stat-line"><span>Total cadastradas:</span> <strong id="stat-total">0</strong></div>
-            <div class="stat-line"><span>Pendentes:</span> <strong id="stat-pendentes" style="color: #f1c40f;">0</strong></div>
-            <div class="stat-line"><span>Concluídas:</span> <strong id="stat-concluidas" style="color: #2ecc71;">0</strong></div>
+        <div class="tab-content active" id="tab-content-stats">
+            <div class="stats-panel">
+                <h4>Seu Relatório Geral</h4>
+                <div class="stat-line"><span>Total Criadas:</span> <strong id="stat-total">0</strong></div>
+                <div class="stat-line"><span>Pendentes:</span> <strong id="stat-pendentes" style="color: #f1c40f;">0</strong></div>
+                <div class="stat-line"><span>Concluídas:</span> <strong id="stat-concluidas" style="color: #2ecc71;">0</strong></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-content-notes">
+            <div class="notes-form">
+                <input type="text" id="note-title" class="note-input-title" placeholder="Título da Nota...">
+                <textarea id="note-body" class="note-input-body" placeholder="Escreva sua anotação aqui..."></textarea>
+                <button class="btn-save-note" onclick="criarNota()">Criar Bloco de Nota</button>
+            </div>
+            <div class="notes-container-list" id="notes-list-target">
+                </div>
+        </div>
+
+        <div class="tab-content" id="tab-content-trash">
+            <h4 style="font-size: 12px; color:#bdc3c7; margin-bottom: 10px; text-transform: uppercase;">Itens Excluídos</h4>
+            <div class="trash-list" id="trash-list-target">
+                </div>
         </div>
     </div>
 
@@ -115,7 +157,7 @@
                 <h1>Minha Agenda</h1>
                 <div class="auth-block">
                     <div id="g_id_onload"
-                         data-client_id="884588851940-hu3aqoc1ciibip94o8r5kn1snraahom.apps.googleusercontent.com"
+                         data-client_id="884588851940-hu3aqqoc1ciibip94o8r5kn1snraahom.apps.googleusercontent.com"
                          data-callback="onSignIn"
                          data-auto_prompt="false">
                     </div>
@@ -187,11 +229,17 @@
 
     <script>
         let dataAtual = new Date("2026-05-22T00:00:00");
+        
+        // Memória do localStorage para os três tipos de dados
         let listaDeTarefas = JSON.parse(localStorage.getItem('minha_agenda_tarefas')) || [];
+        let lixeiraDeTarefas = JSON.parse(localStorage.getItem('minha_agenda_lixeira')) || [];
+        let listaDeNotas = JSON.parse(localStorage.getItem('minha_agenda_notas')) || [];
 
         document.addEventListener('DOMContentLoaded', function () {
             startClock();
             atualizarInterfaceData();
+            renderizarNotas();
+            renderizarLixeira();
         });
 
         function onSignIn(response) {
@@ -213,13 +261,18 @@
             }, 1000);
         }
 
-        // Função de abrir e fechar corrigida para alternar classes com segurança
         function toggleMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        // Troca de Abas dentro do menu lateral
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            document.getElementById(`tab-link-${tabName}`).classList.add('active');
+            document.getElementById(`tab-content-${tabName}`).classList.add('active');
         }
 
         function alterarDia(diasParaSomar) {
@@ -244,6 +297,7 @@
             atualizarEstatisticasMenu();
         }
 
+        /* --- LÓGICA DE TAREFAS --- */
         function salvarTarefa() {
             const inputNome = document.getElementById('task-name');
             const taskName = inputNome.value.trim();
@@ -266,7 +320,7 @@
             };
 
             listaDeTarefas.push(novaTarefa);
-            salvarNoStorage();
+            salvarDados('tarefas', listaDeTarefas);
             
             inputNome.value = ""; 
             atualizarInterfaceData();
@@ -274,23 +328,135 @@
 
         function alternarConclusaoTarefa(id) {
             listaDeTarefas = listaDeTarefas.map(tarefa => {
-                if (tarefa.id === id) {
-                    tarefa.concluida = !tarefa.concluida;
-                }
+                if (tarefa.id === id) tarefa.concluida = !tarefa.concluida;
                 return tarefa;
             });
-            salvarNoStorage();
+            salvarDados('tarefas', listaDeTarefas);
             atualizarInterfaceData();
         }
 
-        function deletarTarefa(id) {
-            listaDeTarefas = listaDeTarefas.filter(tarefa => tarefa.id !== id);
-            salvarNoStorage();
-            atualizarInterfaceData();
+        // Move a tarefa para a Lixeira em vez de apagar de vez
+        function moverParaLixeira(id) {
+            const tarefaParaDeletar = listaDeTarefas.find(t => t.id === id);
+            if (tarefaParaDeletar) {
+                lixeiraDeTarefas.push(tarefaParaDeletar);
+                listaDeTarefas = listaDeTarefas.filter(t => t.id !== id);
+                
+                salvarDados('tarefas', listaDeTarefas);
+                salvarDados('lixeira', lixeiraDeTarefas);
+                
+                atualizarInterfaceData();
+                renderizarLixeira();
+            }
         }
 
-        function salvarNoStorage() {
-            localStorage.setItem('minha_agenda_tarefas', JSON.stringify(listaDeTarefas));
+        /* --- LÓGICA DA LIXEIRA --- */
+        function restaurarTarefa(id) {
+            const tarefaParaRestaurar = lixeiraDeTarefas.find(t => t.id === id);
+            if (tarefaParaRestaurar) {
+                listaDeTarefas.push(tarefaParaRestaurar);
+                lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id);
+                
+                salvarDados('tarefas', listaDeTarefas);
+                salvarDados('lixeira', lixeiraDeTarefas);
+                
+                atualizarInterfaceData();
+                renderizarLixeira();
+            }
+        }
+
+        function excluirDefinitivo(id) {
+            if (confirm("Deseja mesmo excluir permanentemente esta tarefa? Não há como reverter.")) {
+                lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id);
+                salvarDados('lixeira', lixeiraDeTarefas);
+                renderizarLixeira();
+                atualizarEstatisticasMenu();
+            }
+        }
+
+        function renderizarLixeira() {
+            const container = document.getElementById('trash-list-target');
+            document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length;
+
+            if (lixeiraDeTarefas.length === 0) {
+                container.innerHTML = `<div style="font-size:12px; color:#bdc3c7; text-align:center; padding:10px;">Lixeira vazia.</div>`;
+                return;
+            }
+
+            container.innerHTML = "";
+            lixeiraDeTarefas.forEach(tarefa => {
+                const itemHtml = `
+                    <div class="trash-item">
+                        <div>
+                            <strong style="display:block; color:#fff;">${tarefa.nome}</strong>
+                            <small style="color:#bdc3c7;">${tarefa.data} - ${tarefa.horario}</small>
+                        </div>
+                        <div class="trash-actions">
+                            <button class="btn-restore" onclick="restaurarTarefa(${tarefa.id})" title="Restaurar para Agenda"><i class="fa-solid fa-rotate-left"></i></button>
+                            <button class="btn-destroy" onclick="excluirDefinitivo(${tarefa.id})" title="Apagar para sempre"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', itemHtml);
+            });
+        }
+
+        /* --- LÓGICA DO BLOCO DE NOTAS --- */
+        function criarNota() {
+            const titleInput = document.getElementById('note-title');
+            const bodyInput = document.getElementById('note-body');
+            
+            const titulo = titleInput.value.trim();
+            const texto = bodyInput.value.trim();
+
+            if (!texto) {
+                alert("Escreva alguma coisa no bloco de notas antes de salvar!");
+                return;
+            }
+
+            const novaNota = {
+                id: Date.now(),
+                titulo: titulo || "Nota Sem Título",
+                texto: texto
+            };
+
+            listaDeNotas.push(novaNota);
+            salvarDados('notas', listaDeNotas);
+
+            titleInput.value = "";
+            bodyInput.value = "";
+            renderizarNotas();
+        }
+
+        function deletarNota(id) {
+            listaDeNotas = listaDeNotas.filter(n => n.id !== id);
+            salvarDados('notas', listaDeNotas);
+            renderizarNotas();
+        }
+
+        function renderizarNotas() {
+            const container = document.getElementById('notes-list-target');
+            if (listaDeNotas.length === 0) {
+                container.innerHTML = `<div style="font-size:12px; color:#bdc3c7; text-align:center; padding:10px;">Nenhum bloco de nota criado.</div>`;
+                return;
+            }
+
+            container.innerHTML = "";
+            listaDeNotas.forEach(nota => {
+                const cardHtml = `
+                    <div class="note-card">
+                        <h5>${nota.titulo}</h5>
+                        <p>${nota.texto}</p>
+                        <button class="btn-delete-note" onclick="deletarNota(${nota.id})" title="Excluir nota"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        /* --- UTILITÁRIOS --- */
+        function salvarDados(chave, dados) {
+            localStorage.setItem(`minha_agenda_${chave}`, JSON.stringify(dados));
         }
 
         function atualizarEstatisticasMenu() {
@@ -330,7 +496,7 @@
                                 <span class="task-time-text"><i class="fa-regular fa-clock"></i> ${tarefa.horario}</span>
                             </div>
                         </div>
-                        <button class="btn-delete" onclick="deletarTarefa(${tarefa.id})">
+                        <button class="btn-delete" onclick="moverParaLixeira(${tarefa.id})" title="Mover para lixeira">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
