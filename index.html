@@ -452,7 +452,7 @@
         let db, auth, currentUser = null;
         let isFirebaseCarregado = false;
         
-        // CORREÇÃO CRUCIAL AQUI: Criamos a data de forma segura e estrita usando fuso local controlado por strings puras
+        // Criamos a data de forma segura e estrita usando fuso local controlado por strings puras
         let dataAtual = criarDataSemFusoHorario(2026, 5, 22);
         
         let modoVisualizacao = 'dia';
@@ -479,7 +479,6 @@
         }
 
         function converterIsoParaDataLocal(isoString) {
-            // Divide a string para ignorar completamente o componente de timezone (Z ou -03:00)
             let partes = isoString.split('T')[0].split('-');
             return criarDataSemFusoHorario(parseInt(partes[0]), parseInt(partes[1]), parseInt(partes[2]));
         }
@@ -890,9 +889,9 @@
         
         async function moverParaLixeira(id) { const item = listaDeTarefas.find(t => t.id === id); if (item) { lixeiraDeTarefas.push(item); listaDeTarefas = listaDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); } }
         async function restaurarTarefa(id) { const item = lixeiraDeTarefas.find(t => t.id === id); if (item) { listaDeTarefas.push(item); lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); } }
-        async function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); renderizerLixeira(); await salvarDadosNaNuvem(); }
+        async function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); }
         
-        function renderizerLixeira() { const container = document.getElementById('trash-list-target'); document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length; if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; opacity:0.6;">Lixeira vazia.</div>`; return; } container.innerHTML = ""; lixeiraDeTarefas.forEach(t => { container.insertAdjacentHTML('beforeend', `<div class="trash-item" style="display:flex; justify-content:between; align-items:center;"><div><strong>${t.titulo}</strong></div><div><button style="color:#2ecc71; background:none; border:none; margin-right:8px; cursor:pointer;" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button><button style="color:#e74c3c; background:none; border:none; cursor:pointer;" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>`); }); }
+        function renderizarLixeira() { const container = document.getElementById('trash-list-target'); document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length; if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; opacity:0.6;">Lixeira vazia.</div>`; return; } container.innerHTML = ""; lixeiraDeTarefas.forEach(t => { container.insertAdjacentHTML('beforeend', `<div class="trash-item" style="display:flex; justify-content:between; align-items:center;"><div><strong>${t.titulo}</strong></div><div><button style="color:#2ecc71; background:none; border:none; margin-right:8px; cursor:pointer;" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button><button style="color:#e74c3c; background:none; border:none; cursor:pointer;" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>`); }); }
         function atualizarEstatisticasMenu() { document.getElementById('stat-total').textContent = listaDeTarefas.length; let conc = listaDeTarefas.filter(t => t.concluida).length; document.getElementById('stat-concluidas').textContent = conc; document.getElementById('stat-pendentes').textContent = listaDeTarefas.length - conc; }
         
         function atualizarInterface() {
@@ -901,7 +900,7 @@
             if (modoVisualizacao === 'dia') { document.getElementById('day-of-week-label').style.display = 'block'; document.getElementById('day-of-week-label').textContent = diasSemana[dataAtual.getDay()]; document.getElementById('display-date').textContent = dataFmt; } 
             else if (modoVisualizacao === 'semana') { document.getElementById('day-of-week-label').style.display = 'none'; document.getElementById('display-date').textContent = `Semana de ${dataFmt}`; renderizarGradeSemana(); } 
             else if (modoVisualizacao === 'mes') { document.getElementById('day-of-week-label').style.display = 'none'; document.getElementById('display-date').textContent = `${mesesAno[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}`; renderizarGradeMes(); }
-            renderizarTarefas(); atualizarEstatisticasMenu(); renderizerLixeira();
+            renderizarTarefas(); atualizarEstatisticasMenu(); renderizarLixeira();
         }
 
         function renderizarGradeSemana() {
