@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Agendamento Inteligente</title>
     <style>
-        /* Estilos do painel adaptados para visualização sem Firebase */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #121212;
@@ -164,11 +163,11 @@
 </div>
 
 <script>
-    // 1. GESTÃO DO BANCO DE DADOS LOCAL (LocalStorage)
+    // Gestão do Banco de Dados Local (Armazenamento no Navegador)
     const dbLocalStorage = {
         getTarefas: function() {
             const dados = localStorage.getItem('ja_agenda_tarefas');
-            // Se o LocalStorage estiver vazio, inicia com as duas tarefas originais que tinhas guardadas!
+            // Mantém as suas tarefas padrão salvas caso o banco inicie zerado
             return dados ? JSON.parse(dados) : [
                 { id: "1779458301815", titulo: "João", hora: "13:00", tipo: "Tarefa Única" },
                 { id: "1779457320288", titulo: "jodfa", hora: "09:08", tipo: "Rotina Diária" }
@@ -179,19 +178,19 @@
         }
     };
 
-    // 2. SOLUÇÃO DO ERRO DA LIXEIRA (renderizarLixeira is not defined)
+    // Função de renderização do ícone da lixeira (Evita o erro de undefined)
     function renderizarLixeira(id) {
         return `<button type="button" onclick="removerTarefa('${id}')" class="btn-deletar" title="Apagar tarefa">🗑️</button>`;
     }
 
-    // 3. ADICIONAR TAREFA NO LOCAL STORAGE
+    // Adiciona uma nova atividade na memória local
     function adicionarNovaTarefa(event) {
         event.preventDefault();
         
         const titulo = document.getElementById('tarefa-titulo').value;
         const tipo = document.getElementById('tarefa-tipo').value;
         const hora = document.getElementById('tarefa-hora').value;
-        const id = Date.now().toString(); // Cria uma identificação única para a tarefa
+        const id = Date.now().toString();
 
         const novasTarefas = dbLocalStorage.getTarefas();
         novasTarefas.push({ id, titulo, hora, tipo });
@@ -202,7 +201,7 @@
         document.getElementById('form-tarefa').reset();
     }
 
-    // 4. REMOVER TAREFA COM SEGURANÇA
+    // Remove a atividade selecionada
     function removerTarefa(id) {
         if(confirm("Tens a certeza que desejas apagar esta atividade?")) {
             let tarefas = dbLocalStorage.getTarefas();
@@ -212,14 +211,13 @@
         }
     }
 
-    // 5. RENDERIZAR AS TAREFAS NA TELA DO SITE
+    // Desenha as atividades ordenadas por hora na interface
     function carregarTarefasNaTela() {
         const tarefas = dbLocalStorage.getTarefas();
         const container = document.getElementById('container-tarefas');
         
         if (!container) return;
         
-        // Ordena as tarefas automaticamente do horário mais cedo para o mais tarde
         tarefas.sort((a, b) => a.hora.localeCompare(b.hora));
         
         if (tarefas.length === 0) {
@@ -242,10 +240,9 @@
     }
 
     // ==========================================
-    // 6. NOVO SISTEMA DE BACKUP E RESTAURAÇÃO (.JSON)
+    // SISTEMA DE SEGURANÇA: EXPORTAÇÃO E IMPORTAÇÃO
     // ==========================================
 
-    // Gera e descarrega um ficheiro de backup das tuas tarefas
     function exportarBackup() {
         const tarefas = dbLocalStorage.getTarefas();
         const dadosTexto = JSON.stringify(tarefas, null, 2);
@@ -263,7 +260,6 @@
         URL.revokeObjectURL(url);
     }
 
-    // Carrega um ficheiro de backup enviado pelo usuário de volta para o sistema
     function importarBackup(event) {
         const arquivo = event.target.files[0];
         if (!arquivo) return;
@@ -276,19 +272,18 @@
                 if (Array.isArray(tarefasImportadas)) {
                     dbLocalStorage.salvarTarefas(tarefasImportadas);
                     carregarTarefasNaTela();
-                    alert("Backup restaurado com sucesso! As tuas tarefas foram recuperadas para o ecrã.");
+                    alert("Backup restaurado com sucesso!");
                 } else {
-                    alert("Erro: O ficheiro de backup não possui um formato compatível.");
+                    alert("Erro: O arquivo de backup não é compatível.");
                 }
             } catch (erro) {
-                alert("Erro ao processar o ficheiro. Escolha o arquivo .json gerado pelo botão de backup.");
+                alert("Erro ao ler o arquivo. Certifique-se de carregar o arquivo .json correto.");
             }
         };
         leitor.readAsText(arquivo);
-        event.target.value = ''; // Reseta o seletor de arquivos
+        event.target.value = '';
     }
 
-    // Disponibiliza as funções na janela global
     window.renderizarLixeira = renderizarLixeira;
     window.removerTarefa = removerTarefa;
     
