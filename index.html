@@ -300,7 +300,7 @@
                 </div>
 
                 <div class="sticker-selector-container">
-                    <h4 style="font-size: 12px; text-transform: uppercase; color:#bdc3c7; margin-bottom:8px;">Adesivos (+1000 Disponíveis)</h4>
+                    <h4 style="font-size: 12px; text-transform: uppercase; color:#bdc3c7; margin-bottom:8px;">Adesivos</h4>
                     <div class="sticker-scroll-grid" id="sticker-box-target"></div>
                 </div>
 
@@ -451,7 +451,10 @@
 
         let db, auth, currentUser = null;
         let isFirebaseCarregado = false;
-        let dataAtual = new Date("2026-05-22T00:00:00");
+        
+        // CORREÇÃO CRUCIAL AQUI: Criamos a data de forma segura e estrita usando fuso local controlado por strings puras
+        let dataAtual = criarDataSemFusoHorario(2026, 5, 22);
+        
         let modoVisualizacao = 'dia';
         let idTarefaEmEdicao = null;
         let idNotaEmEdicao = null;
@@ -467,6 +470,19 @@
         let pomoMinutosPadrao = 25;
         let pomoTempoRestante = 25 * 60;
         let pomoNomeCustomizado = "Foco";
+
+        function criarDataSemFusoHorario(ano, mes, dia) {
+            let d = new Date();
+            d.setFullYear(ano, mes - 1, dia);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        function converterIsoParaDataLocal(isoString) {
+            // Divide a string para ignorar completamente o componente de timezone (Z ou -03:00)
+            let partes = isoString.split('T')[0].split('-');
+            return criarDataSemFusoHorario(parseInt(partes[0]), parseInt(partes[1]), parseInt(partes[2]));
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const { initializeApp, getAuth, GoogleAuthProvider, onAuthStateChanged, getFirestore } = window.fbModules;
@@ -577,7 +593,6 @@
                     xp: userXP,
                     level: userLevel
                 }, { merge: true });
-                console.log("Dados sincronizados com sucesso!");
             } catch (error) {
                 console.error("Erro ao guardar dados:", error);
             }
@@ -818,7 +833,7 @@
         function exportarParaExcel() {
             if (listaDeTarefas.length === 0) { alert("Sem tarefas para exportar!"); return; }
             const dados = listaDeTarefas.map(t => ({ "ID": t.id, "Tarefa": t.titulo, "Frequência": t.tipo, "Categoria": t.categoria, "Data": t.data, "Horário": t.hora, "Status": t.concluida ? 'Concluída' : 'Pendente' }));
-            const libro = XLSX.utils.book_new(); const planilha = XLSX.utils.json_to_sheet(dados); XLSX.utils.book_append_sheet(livro, planilha, "Tarefas"); XLSX.writeFile(livro, "agenda_produtiva.xlsx");
+            const livro = XLSX.utils.book_new(); const planilha = XLSX.utils.json_to_sheet(dados); XLSX.utils.book_append_sheet(livro, planilha, "Tarefas"); XLSX.writeFile(livro, "agenda_produtiva.xlsx");
         }
 
         function editarNomePomodoro() { const n = prompt("Nome da atividade:", pomoNomeCustomizado); if(n && n.trim()) { pomoNomeCustomizado = n.trim(); document.getElementById('pomo-label').innerHTML = `<i class="fa-solid fa-brain"></i> ${pomoNomeCustomizado}`; } }
@@ -849,7 +864,11 @@
         function alterarModoVisualizacao(m) { modoVisualizacao = m; document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active')); document.getElementById(`btn-view-${m}`).classList.add('active'); document.getElementById('container-visao-semana').style.display = m === 'semana' ? 'block' : 'none'; document.getElementById('container-visao-mes').style.display = m === 'mes' ? 'block' : 'none'; atualizarInterface(); }
         function navegarData(dir) { if (modoVisualizacao === 'dia') dataAtual.setDate(dataAtual.getDate() + dir); else if (modoVisualizacao === 'semana') dataAtual.setDate(dataAtual.getDate() + (dir * 7)); else if (modoVisualizacao === 'mes') dataAtual.setMonth(dataAtual.getMonth() + dir); atualizarInterface(); }
         function formatarDataString(dateObj) { return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`; }
-        function selecionarDataDireta(iso) { dataAtual = new Date(iso); atualizarInterface(); }
+        
+        function selecionarDataDireta(iso) { 
+            dataAtual = converterIsoParaDataLocal(iso); 
+            atualizarInterface(); 
+        }
         
         function adicionarXP(q) { 
             userXP += q; 
