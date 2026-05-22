@@ -3,1073 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Gerenciador de Tempo e Notas</title>
+    <title>Minha Agenda</title>
+    
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
-        /* VARIÁVEIS DE TEMA PONTUAIS PARA MODO CLARO/ESCURO */
-        :root {
-            --bg-body: #f4f6f9;
-            --bg-container: white;
-            --text-principal: #333333;
-            --text-secundario: #4a5568;
-            --border-cor: #e2e8f0;
-            --bg-form: #f7fafc;
-            --bg-card: #f8fafc;
-            --bg-card-concluido: #edf2f7;
-            --bg-input: #ffffff;
-            --text-input: #333333;
-        }
-
-        [data-tema="escuro"] {
-            --bg-body: #121212;
-            --bg-container: #1e1e1e;
-            --text-principal: #e2e8f0;
-            --text-secundario: #a0aec0;
-            --border-cor: #2d3748;
-            --bg-form: #252525;
-            --bg-card: #2d3748;
-            --bg-card-concluido: #1a202c;
-            --bg-input: #2d3748;
-            --text-input: #ffffff;
-        }
-
-        [data-tema="azul-noturno"] {
-            --bg-body: #0f172a;
-            --bg-container: #1e293b;
-            --text-principal: #f1f5f9;
-            --text-secundario: #94a3b8;
-            --border-cor: #334155;
-            --bg-form: #1e293b;
-            --bg-card: #334155;
-            --bg-card-concluido: #0f172a;
-            --bg-input: #334155;
-            --text-input: #ffffff;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-body);
-            margin: 0;
-            padding: 20px;
-            color: var(--text-principal);
-            transition: padding-left 0.3s ease, background-color 0.3s, color 0.3s;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; padding: 20px; color: #333; }
         
-        .container {
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-            background: var(--bg-container);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .cabecalho-menu {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
+        /* Cabeçalho */
+        .header-main { display: flex; justify-content: space-between; align-items: center; background-color: #fff; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { background-color: #34495e; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 18px; cursor: pointer; }
+        .title-area h1 { font-size: 24px; color: #34495e; }
         
-        .cabecalho-esquerda {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
+        /* Espaço do Bloco do Google */
+        .auth-block { margin-top: 8px; min-height: 45px; display: block !important; }
 
-        .cabecalho-direita-relogio {
-            text-align: right;
-            background: #2d3748;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-            min-width: 150px;
-        }
-        .relogio-tempo {
-            font-size: 1.4rem;
-            font-weight: bold;
-            font-family: monospace;
-            color: #63b3ed;
-            line-height: 1.2;
-        }
-        .relogio-meta {
-            font-size: 0.75rem;
-            color: #a0aec0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        /* Relógio Digital */
+        .clock-container { background-color: #1a252f; color: #fff; padding: 10px 20px; border-radius: 6px; text-align: right; font-weight: bold; }
+        .clock-time { font-size: 20px; letter-spacing: 1px; color: #3498db; }
+        .clock-date { font-size: 11px; color: #bdc3c7; margin-top: 2px; }
 
-        .btn-hamburguer {
-            background: #4a5568;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            font-size: 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            line-height: 1;
-            transition: background 0.2s;
-        }
-        .btn-hamburguer:hover { background: #2d3748; }
+        /* Navegação */
+        .navigation-bar { display: flex; justify-content: space-between; align-items: center; background-color: #fff; padding: 12px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .nav-btn { background-color: #2980b9; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .current-date { font-size: 18px; font-weight: bold; color: #2c3e50; }
 
-        h1 { margin: 0; color: var(--text-secundario); font-size: 1.8rem; }
+        /* Formulário Verde */
+        .card-form { background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card-title { font-size: 16px; color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; color: #7f8c8d; margin-bottom: 6px; }
+        .input-text { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 4px; font-size: 14px; }
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .form-col { flex: 1; min-width: 150px; }
+        .select-field, .input-date, .input-time { width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 4px; background-color: #fff; font-size: 14px; height: 42px; }
+        .notify-box { display: flex; align-items: center; gap: 8px; background-color: #f1f2f6; padding: 10px 15px; border-radius: 4px; height: 42px; width: 100%; justify-content: center; font-size: 13px; font-weight: bold; color: #2c3e50; }
+        .btn-add { width: 100%; background-color: #2a9d8f; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
         
-        .bloco-navegacao-agenda {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 30px;
-        }
-        .dia-da-semana-topo {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: var(--text-secundario);
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            letter-spacing: 0.5px;
-            padding-left: 5px;
-        }
-        .navegador-datas {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-form);
-            border: 1px solid var(--border-cor);
-            padding: 10px 20px;
-            border-radius: 8px;
-        }
-        .btn-seta { background: #3182ce; color: white; border: none; padding: 8px 15px; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        .btn-seta:hover { background: #2b6cb0; }
-        .data-atual { color: var(--text-principal); font-size: 1.2rem; font-weight: bold; margin: 0; }
-
-        .formulario {
-            background: var(--bg-form);
-            border: 1px solid var(--border-cor);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .formulario h2 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--text-principal); }
-        .grupo-campo { display: flex; flex-direction: column; gap: 5px; }
-        .grupo-campo label { font-size: 0.9rem; font-weight: bold; color: var(--text-secundario); }
-        .formulario input, .formulario select, .formulario textarea { background: var(--bg-input); color: var(--text-input); padding: 10px; border: 1px solid var(--border-cor); border-radius: 6px; font-size: 1rem; font-family: inherit; box-sizing: border-box; }
-        
-        .linha-campos {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-        }
-        .linha-campos .grupo-campo {
-            flex: 1;
-            min-width: 150px;
-        }
-        
-        .switch-notificacao {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px;
-            background: var(--border-cor);
-            border-radius: 6px;
-            cursor: pointer;
-            user-select: none;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--text-secundario);
-            min-width: 160px;
-            height: 42px;
-            box-sizing: border-box;
-        }
-        .switch-notificacao input {
-            cursor: pointer;
-            width: 16px;
-            height: 16px;
-            margin: 0;
-        }
-
-        .btn-adicionar { background: #319795; color: white; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 5px; }
-        .btn-adicionar:hover { background: #2c7a7b; }
-
-        .lista-tarefas { display: flex; flex-direction: column; gap: 15px; }
-        
-        /* CORES DE CATEGORIAS EM BARRAS LATERAIS DOS CARDS */
-        .tarefa-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background: var(--bg-card);
-            border-left: 6px solid #3182ce;
-            border-radius: 6px;
-            border-top: 1px solid var(--border-cor);
-            border-right: 1px solid var(--border-cor);
-            border-bottom: 1px solid var(--border-cor);
-        }
-        .tarefa-card.cat-padrao { border-left-color: #3182ce; }
-        .tarefa-card.cat-trabalho { border-left-color: #ecc94b; }
-        .tarefa-card.cat-pessoal { border-left-color: #48bb78; }
-        .tarefa-card.cat-urgente { border-left-color: #e53e3e; }
-
-        .tarefa-card.feita { border-left-color: #a0aec0 !important; background: var(--bg-card-concluido); opacity: 0.6; }
-        .tarefa-card.feita h3 { text-decoration: line-through; color: #718096; }
-        
-        .tarefa-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
-        .tarefa-horario { font-size: 0.9rem; color: var(--text-secundario); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-weight: 500; }
-        .badge-notif { background: #e53e3e; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-        
-        .tarefa-info span.badge-tipo { font-size: 0.85rem; padding: 3px 8px; border-radius: 20px; color: white; margin-right: 5px; }
-        .badge-pontual { background-color: #3182ce; }
-        .badge-fixa { background-color: #319795; }
-        
-        .badge-cat { font-size: 0.85rem; padding: 3px 8px; border-radius: 20px; color: #fff; font-weight: bold; }
-        .badge-cat-padrao { background: #3182ce; }
-        .badge-cat-trabalho { background: #d69e2e; }
-        .badge-cat-pessoal { background: #38a169; }
-        .badge-cat-urgente { background: #e53e3e; }
-
-        .acoes-tarefa { display: flex; align-items: center; gap: 10px; }
-        .btn-status { border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-status.pendente { color: #e53e3e; background: #fff5f5; }
-        .btn-status.concluida { color: #38a169; background: #f0fff4; }
-        .btn-excluir { background: #e53e3e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-
-        /* MENU LATERAL */
-        .sidebar-menu {
-            position: fixed;
-            top: 0;
-            left: -320px;
-            width: 290px;
-            height: 100%;
-            background: #1a202c;
-            color: white;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.2);
-            transition: left 0.3s ease;
-            padding: 20px;
-            box-sizing: border-box;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-menu.aberta { left: 0; }
-        
-        .sidebar-titulo {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #4a5568;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .sidebar-titulo h2 { margin: 0; font-size: 1.3rem; color: #e2e8f0; }
-        .btn-fechar-menu { background: transparent; border: none; color: #a0aec0; font-size: 1.3rem; cursor: pointer; }
-        
-        .lista-abas { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-        .btn-aba {
-            background: #2d3748;
-            color: #e2e8f0;
-            border: none;
-            padding: 12px 15px;
-            border-radius: 6px;
-            text-align: left;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .btn-aba:hover, .btn-aba.ativa { background: #4a5568; color: white; border-left: 4px solid #319795; }
-        .badge-contador { background: #e53e3e; color: white; font-size: 0.8rem; padding: 2px 7px; border-radius: 10px; }
-
-        /* SEÇÃO DE TEMAS NO MENU LATERAL */
-        .secao-aparencia {
-            border-top: 1px solid #4a5568;
-            padding-top: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .secao-aparencia h4 { margin: 0 0 5px 0; color: #a0aec0; font-size: 0.85rem; text-transform: uppercase; }
-        .seletor-tema {
-            padding: 8px;
-            background: #2d3748;
-            color: white;
-            border: 1px solid #4a5568;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        /* MODAIS */
-        .janela-conteudo { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 900; }
-        .janela-conteudo.visivel { display: block; }
-        
-        .janela-corpo {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--bg-container);
-            color: var(--text-principal);
-            width: 95%;
-            max-width: 850px;
-            height: 85vh;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-            border: 1px solid var(--border-cor);
-        }
-        .janela-corpo h2 { margin-top: 0; color: var(--text-principal); border-bottom: 2px solid var(--border-cor); padding-bottom: 10px; display: flex; justify-content: space-between; margin-bottom: 15px; }
-        
-        .bloco-layout { display: flex; flex: 1; gap: 20px; overflow: hidden; }
-        .notas-lateral { width: 250px; border-right: 1px solid var(--border-cor); display: flex; flex-direction: column; gap: 10px; padding-right: 15px; overflow-y: auto; }
-        .btn-criar-nota { background: #3182ce; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; }
-        .btn-criar-nota:hover { background: #2b6cb0; }
-        
-        .lista-mini-notas { display: flex; flex-direction: column; gap: 8px; }
-        .mini-nota-card { padding: 10px; background: var(--bg-form); border: 1px solid var(--border-cor); border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; transition: all 0.2s; }
-        .mini-nota-card:hover { background: var(--border-cor); }
-        .mini-nota-card.selecionada { background: var(--border-cor); border-color: var(--text-secundario); }
-        .mini-nota-topo { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .mini-nota-card h4 { margin: 0; font-size: 0.95rem; color: var(--text-principal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
-        .mini-nota-data { font-size: 0.75rem; color: var(--text-secundario); font-style: italic; }
-        .btn-deletar-nota { background: transparent; border: none; color: #a0aec0; cursor: pointer; font-size: 0.9rem; padding: 0; }
-        .btn-deletar-nota:hover { color: #e53e3e; }
-
-        .notas-editor { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-        .notas-editor input { background: var(--bg-input); color: var(--text-input); padding: 10px; border: 1px solid var(--border-cor); border-radius: 6px; font-size: 1.1rem; font-weight: bold; }
-        .notas-editor textarea { background: var(--bg-input); color: var(--text-input); flex: 1; width: 100%; resize: none; border: 1px solid var(--border-cor); border-radius: 6px; padding: 15px; font-size: 1rem; box-sizing: border-box; }
-        .meta-info-nota-editor { font-size: 0.8rem; color: var(--text-secundario); background: var(--bg-form); padding: 6px 12px; border-radius: 4px; display: inline-block; align-self: flex-start; }
-        .status-salvamento { font-size: 0.85rem; color: var(--text-secundario); font-style: italic; }
-
-        /* LIXEIRA E HISTÓRICO */
-        .container-scroll-janela { overflow-y: auto; flex: 1; padding-right: 5px; }
-        .tarefa-card.lixeira-item, .tarefa-card.historico-item { background: var(--bg-form); border-left: 4px solid #e53e3e; margin-bottom: 12px; flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px; }
-        .tarefa-card.historico-item { border-left-color: #38a169; }
-        .tarefa-card.lixeira-item h3, .tarefa-card.historico-item h3 { margin: 0; font-size: 1rem;}
-        .lixeira-vazia, .historico-vazio { color: #a0aec0; text-align: center; font-style: italic; padding: 20px; }
-        .botoes-lixeira { display: flex; gap: 8px; width: 100%; }
-        .btn-restaurar-item { background: #3182ce; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; flex: 1; }
-        .btn-deletar-item-de-vez { background: #e53e3e; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; flex: 1; }
-
-        /* CONTAINER PARA SOBREPOR COMPROMISSOS INTERNOS */
-        #container-notificacoes-tela {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            z-index: 99999;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 340px;
-            width: 100%;
-            pointer-events: none;
-        }
-        .alerta-flutuante {
-            pointer-events: auto;
-            background: #1a202c;
-            color: #fff;
-            padding: 16px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            border-left: 6px solid #e53e3e;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            animation: deslizarOrigem 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-        }
-        @keyframes deslizarOrigem {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .alerta-flutuante-topo {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .alerta-flutuante-titulo {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            font-weight: bold;
-            color: #fc8181;
-            letter-spacing: 0.5px;
-        }
-        .alerta-flutuante-fechar {
-            background: transparent;
-            border: none;
-            color: #a0aec0;
-            font-size: 1.1rem;
-            cursor: pointer;
-            padding: 0 5px;
-        }
-        .alerta-flutuante-fechar:hover { color: #fff; }
-        .alerta-flutuante-corpo {
-            font-size: 1.05rem;
-            font-weight: 500;
-            line-height: 1.4;
-        }
+        .no-tasks { text-align: center; color: #95a5a6; font-size: 14px; margin-top: 25px; }
+        .day-label { font-size: 12px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div id="container-notificacoes-tela"></div>
-
-    <div class="sidebar-menu" id="menu-principal">
-        <div class="sidebar-titulo">
-            <h2>⚙️ Navegação</h2>
-            <button class="btn-fechar-menu" onclick="toggleMenu()">✕</button>
-        </div>
-        <div class="lista-abas">
-            <button class="btn-aba ativa" onclick="abrirSecao('agenda')">📅 Minha Agenda</button>
-            <button class="btn-aba" onclick="abrirSecao('notas')">📝 Bloco de Notas</button>
-            <button class="btn-aba" onclick="abrirSecao('historico')">📋 Histórico Geral</button>
-            <button class="btn-aba" onclick="abrirSecao('lixeira')">
-                <span>🗑️ Lixeira</span>
-                <span class="badge-contador" id="contador-lixeira-menu">0</span>
-            </button>
-        </div>
-        
-        <div class="secao-aparencia">
-            <h4>🎨 Aparência (Tema)</h4>
-            <select class="seletor-tema" id="escolha-tema" onchange="mudarTemaTemaGeral()">
-                <option value="claro">☀️ Modo Claro</option>
-                <option value="escuro">🌙 Modo Escuro Total</option>
-                <option value="azul-noturno">🌌 Azul Noturno</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="janela-conteudo" id="janela-notas">
-        <div class="janela-corpo">
-            <h2>
-                <span>📝 Meu Caderno de Notas</span>
-                <button class="btn-fechar-menu" style="color:var(--text-principal)" onclick="fecharJanelas()">✕</button>
-            </h2>
-            
-            <div class="bloco-layout">
-                <div class="notas-lateral">
-                    <button class="btn-criar-nota" onclick="criarNovaNotaEmBranco()">➕ Nova Nota</button>
-                    <div class="lista-mini-notas" id="container-mini-notas"></div>
-                </div>
-                
-                <div class="notas-editor" id="area-editor-nota" style="display: none;">
-                    <input type="text" id="nota-titulo-input" placeholder="Título da Nota" oninput="salvarNotaAtivaNoNavegador()">
-                    <div class="meta-info-nota-editor" id="nota-criada-em-texto">Criada em: --/--/----</div>
-                    <textarea id="nota-texto-textarea" placeholder="Comece a escrever suas anotações aqui..." oninput="salvarNotaAtivaNoNavegador()"></textarea>
-                    <div class="status-salvamento" id="status-nota">Salvo na memória local automaticamente.</div>
-                </div>
-
-                <div id="aviso-nenhuma-nota" style="flex:1; display:flex; align-items:center; justify-content:center; color:#a0aec0; font-style:italic; text-align:center;">
-                    Selecione uma nota ao lado ou crie uma nova para começar a escrever!
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="janela-conteudo" id="janela-lixeira">
-        <div class="janela-corpo" style="max-width:500px; height:auto; max-height:80vh;">
-            <h2>
-                <span>🗑️ Itens Excluídos</span>
-                <button class="btn-fechar-menu" style="color:var(--text-principal)" onclick="fecharJanelas()">✕</button>
-            </h2>
-            <div class="container-scroll-janela" id="lixeira-html"></div>
-        </div>
-    </div>
-
-    <div class="janela-conteudo" id="janela-historico">
-        <div class="janela-corpo" style="max-width:550px; height:auto; max-height:80vh;">
-            <h2>
-                <span>📋 Histórico de Concluídas</span>
-                <button class="btn-fechar-menu" style="color:var(--text-principal)" onclick="fecharJanelas()">✕</button>
-            </h2>
-            <div class="container-scroll-janela" id="historico-html"></div>
-        </div>
-    </div>
-
-    <div class="container" id="conteudo-agenda">
-        <div class="cabecalho-menu">
-            <div class="cabecalho-esquerda">
-                <button class="btn-hamburguer" onclick="toggleMenu()">☰</button>
+    <header class="header-main">
+        <div class="header-left">
+            <button class="menu-btn"><i class="fa-solid fa-bars"></i></button>
+            <div class="title-area">
                 <h1>Minha Agenda</h1>
-            </div>
-            
-            <div class="cabecalho-direita-relogio">
-                <div class="relogio-tempo" id="relogio-dinamico">00:00:00</div>
-                <div class="relogio-meta" id="relogio-data-meta">DD/MM/AA</div>
+                
+                <div class="auth-block">
+                    <div id="g_id_onload"
+                         data-client_id="884588851940-hu3aqqoc1ciibip94o8r5kn1snraahom.apps.googleusercontent.com"
+                         data-callback="onSignIn"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin"
+                         data-type="standard"
+                         data-size="large"
+                         data-theme="outline"
+                         data-text="signin_with"
+                         data-shape="rectangular"
+                         data-logo_alignment="left">
+                    </div>
+                </div>
+
             </div>
         </div>
         
-        <div class="bloco-navegacao-agenda">
-            <div class="dia-da-semana-topo" id="campo-dia-da-semana">QUINTA-FEIRA</div>
-            <div class="navegador-datas">
-                <button class="btn-seta" onclick="mudarDia(-1)">◀ Voltar</button>
-                <div class="data-atual" id="campo-data">Carregando...</div>
-                <button class="btn-seta" onclick="mudarDia(1)">Avançar ▶</button>
+        <div class="clock-container">
+            <div class="clock-time" id="live-clock">00:00:00</div>
+            <div class="clock-date">22/05/2026</div>
+        </div>
+    </header>
+
+    <div class="day-label">Sexta-Feira</div>
+
+    <section class="navigation-bar">
+        <button class="nav-btn"><i class="fa-solid fa-caret-left"></i> Voltar</button>
+        <span class="current-date">22/05/2026</span>
+        <button class="nav-btn">Avançar <i class="fa-solid fa-caret-right"></i></button>
+    </section>
+
+    <main class="card-form">
+        <h2 class="card-title"><i class="fa-solid fa-plus"></i> Nova Tarefa</h2>
+        <div class="form-group">
+            <label>O que você precisa fazer?</label>
+            <input type="text" class="input-text" id="task-name" placeholder="Ex: Reunião com cliente ou Academia">
+        </div>
+        <div class="form-row">
+            <div class="form-col">
+                <label>Tipo de Tarefa</label>
+                <select class="select-field">
+                    <option>Tarefa Única (Data/Hora específica)</option>
+                </select>
+            </div>
+            <div class="form-col">
+                <label>Categoria (Cor)</label>
+                <select class="select-field">
+                    <option>🔵 Padrão (Azul)</option>
+                </select>
             </div>
         </div>
-
-        <div class="formulario">
-            <h2>➕ Nova Tarefa</h2>
-            <div class="grupo-campo">
-                <label>O que você precisa fazer?</label>
-                <input type="text" id="input-titulo" placeholder="Ex: Reunião com cliente ou Academia">
+        <div class="form-row">
+            <div class="form-col">
+                <label>Data</label>
+                <input type="text" class="input-date" value="22/05/2026" readonly>
             </div>
-            
-            <div class="linha-campos">
-                <div class="grupo-campo">
-                    <label>Tipo de Tarefa</label>
-                    <select id="select-tipo" onchange="ajustarCamposFormulario()">
-                        <option value="pontual">Tarefa Única (Data/Hora específica)</option>
-                        <option value="fixa">Rotina Fixa (Diária)</option>
-                    </select>
-                </div>
-
-                <div class="grupo-campo">
-                    <label>🏷️ Categoria (Cor)</label>
-                    <select id="select-categoria">
-                        <option value="padrao">🔵 Padrão (Azul)</option>
-                        <option value="trabalho">🟡 Trabalho (Amarelo)</option>
-                        <option value="pessoal">🟢 Pessoal (Verde)</option>
-                        <option value="urgente">🔴 Urgente (Vermelho)</option>
-                    </select>
-                </div>
-
-                <div class="grupo-campo" id="container-data">
-                    <label>Data</label>
-                    <input type="date" id="input-data-tarefa">
-                </div>
-
-                <div class="grupo-campo" id="container-hora">
-                    <label id="label-hora">Horário (Opcional)</label>
-                    <input type="time" id="input-hora-tarefa">
-                </div>
-
-                <label class="switch-notificacao">
-                    <input type="checkbox" id="input-notificar" onchange="solicitarPermissaoNotificacao()">
-                    <span>🔔 Notificar-me</span>
+            <div class="form-col">
+                <label>Horário (Opcional)</label>
+                <input type="time" class="input-time" value="14:00">
+            </div>
+            <div class="form-col" style="display: flex; align-items: flex-end;">
+                <label class="notify-box">
+                    <input type="checkbox"> 🔔 Notificar-me
                 </label>
             </div>
-
-            <button class="btn-adicionar" onclick="adicionarNovaTarefa()">Adicionar na Agenda</button>
         </div>
+        <button type="button" class="btn-add" onclick="salvarTarefa()">Adicionar na Agenda</button>
+    </main>
 
-        <div class="lista-tarefas" id="lista-html"></div>
-    </div>
+    <div class="no-tasks">Nenhuma tarefa marcada para este dia.</div>
 
     <script>
-        function salvarDadosNoNavegador() {
-            localStorage.setItem('tarefasPontuais', JSON.stringify(tarefasPontuais));
-            localStorage.setItem('tarefasFixas', JSON.stringify(tarefasFixas));
-            localStorage.setItem('lixeira', JSON.stringify(lixeira));
-            localStorage.setItem('historicoFixasConcluidas', JSON.stringify(historicoFixasConcluidas));
-            localStorage.setItem('historicoGeralConcluidas', JSON.stringify(historicoGeralConcluidas));
-        }
+        document.addEventListener('DOMContentLoaded', function () {
+            startClock();
+        });
 
-        let tarefasPontuais = JSON.parse(localStorage.getItem('tarefasPontuais')) || [];
-        let tarefasFixas = JSON.parse(localStorage.getItem('tarefasFixas')) || [];
-        let lixeira = JSON.parse(localStorage.getItem('lixeira')) || [];
-        const historicoFixasConcluidas = JSON.parse(localStorage.getItem('historicoFixasConcluidas')) || [];
-        let historicoGeralConcluidas = JSON.parse(localStorage.getItem('historicoGeralConcluidas')) || [];
-        let temaSalvo = localStorage.getItem('temaInterfaceAgenda') || 'claro';
-        
-        let cadernoDeNotas = JSON.parse(localStorage.getItem('cadernoDeNotas')) || [
-            { id: 501, titulo: "Minha Primeira Nota", texto: "Aqui está um exemplo de anotação interna!", dataCriacao: "21/05/2026 10:15" }
-        ];
-        let idNotaAtiva = null;
-        let dataFocoObjeto = new Date();
-
-        const diasSemanaPorExtenso = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-
-        // CONFIGURAR TEMA INICIAL
-        document.documentElement.setAttribute('data-tema', temaSalvo);
-        document.getElementById('escolha-tema').value = temaSalvo;
-
-        function mudarTemaTemaGeral() {
-            const novoTema = document.getElementById('escolha-tema').value;
-            document.documentElement.setAttribute('data-tema', novoTema);
-            localStorage.setItem('temaInterfaceAgenda', novoTema);
-        }
-
-        function obtenerDataFormatada(objetoDate) {
-            const ano = objetoDate.getFullYear();
-            const mes = String(objetoDate.getMonth() + 1).padStart(2, '0');
-            const dia = String(objetoDate.getDate()).padStart(2, '0');
-            return `${ano}-${mes}-${dia}`;
-        }
-
-        function gerarStringDataHoraAtual() {
-            const agora = new Date();
-            const dia = String(agora.getDate()).padStart(2, '0');
-            const mes = String(agora.getMonth() + 1).padStart(2, '0');
-            const ano = agora.getFullYear();
-            const horas = String(agora.getHours()).padStart(2, '0');
-            const minutos = String(agora.getMinutes()).padStart(2, '0');
-            return `${dia}/${mes}/${ano} às ${horas}:${minutos}`;
-        }
-
-        document.getElementById('input-data-tarefa').value = obtenerDataFormatada(dataFocoObjeto);
-        document.getElementById('input-hora-tarefa').value = "14:00";
-
-        function atualizarRelogioDeBrasilia() {
-            const agora = new Date();
-            const opcoesHora = { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            const opcoesData = { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: '2-digit' };
+        // Função executada quando o usuário faz login
+        function onSignIn(response) {
+            const dataBase64 = response.credential.split('.')[1];
+            const jsonString = window.atob(dataBase64);
+            const usuario = JSON.parse(jsonString);
             
-            const horaBrasilia = agora.toLocaleTimeString('pt-BR', opcoesHora);
-            const dataBrasilia = agora.toLocaleDateString('pt-BR', opcoesData);
-            
-            document.getElementById('relogio-dinamico').innerText = horaBrasilia;
-            document.getElementById('relogio-data-meta').innerText = dataBrasilia;
-        }
-        setInterval(atualizarRelogioDeBrasilia, 1000);
-        atualizarRelogioDeBrasilia();
-
-        window.toggleMenu = function() {
-            const sidebar = document.getElementById('menu-principal');
-            sidebar.classList.toggle('aberta');
-            if(sidebar.classList.contains('aberta') && window.innerWidth > 800) {
-                document.body.style.paddingLeft = "330px";
-            } else {
-                document.body.style.paddingLeft = "20px";
-            }
+            // Exibe o alerta com o nome do usuário logado
+            alert("Bem-vindo, " + usuario.name);
         }
 
-        window.fecharJanelas = function() {
-            document.getElementById('janela-notas').classList.remove('visivel');
-            document.getElementById('janela-lixeira').classList.remove('visivel');
-            document.getElementById('janela-historico').classList.remove('visivel');
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                const timeString = now.toTimeString().split(' ')[0];
+                document.getElementById('live-clock').textContent = timeString;
+            }, 1000);
         }
 
-        window.abrirSecao = function(secao) {
-            toggleMenu();
-            fecharJanelas();
-            if (secao === 'notas') {
-                document.getElementById('janela-notas').classList.add('visivel');
-                renderizarListaDeNotas();
-            } else if (secao === 'lixeira') {
-                document.getElementById('janela-lixeira').classList.add('visivel');
-            } else if (secao === 'historico') {
-                document.getElementById('janela-historico').classList.add('visivel');
-            }
+        function salvarTarefa() {
+            const taskName = document.getElementById('task-name').value;
+            if (!taskName) { alert("Por favor, preencha o nome!"); return; }
+            alert(`Tarefa "${taskName}" salva!`);
+            document.getElementById('task-name').value = "";
         }
-
-        window.solicitarPermissaoNotificacao = function() {
-            const checkbox = document.getElementById('input-notificar');
-            if (checkbox.checked) {
-                if ("Notification" in window) {
-                    Notification.requestPermission().then(permissao => {
-                        if (permissao !== "granted" && location.protocol === "file:") {
-                            alert("Atenção: Para receber notificações nativas no Windows, você precisa abrir este arquivo usando um Servidor Local (HTTP/localhost) em vez de dar dois cliques no arquivo.");
-                        }
-                    });
-                }
-            }
-        }
-
-        function emitirBipSonoro() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(660, ctx.currentTime);
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.3);
-            } catch (e) {}
-        }
-
-        function dispararNotificacaoGlobalDoSistema(mensagem) {
-            emitirBipSonoro();
-            
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("⏰ Compromisso Agendado!", {
-                    body: mensagem,
-                    requireInteraction: true
-                });
-            }
-            
-            const container = document.getElementById('container-notificacoes-tela');
-            const idAlerta = 'alerta-' + Date.now();
-            const cardHtml = `
-                <div class="alerta-flutuante" id="${idAlerta}">
-                    <div class="alerta-flutuante-topo">
-                        <span class="alerta-flutuante-titulo">⏰ COMPROMISSO AGORA</span>
-                        <button class="alerta-flutuante-fechar" onclick="document.getElementById('${idAlerta}').remove()">✕</button>
-                    </div>
-                    <div class="alerta-flutuante-corpo">${mensagem}</div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', cardHtml);
-        }
-
-        setInterval(function checarNotificacoesAgendadas() {
-            const agora = new Date();
-            const opcoesData = { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' };
-            const opcoesHora = { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false };
-            
-            const [d, m, a] = agora.toLocaleDateString('pt-BR', opcoesData).split('/');
-            const dataAtualTexto = `${a}-${m}-${d}`;
-            const horaMinutoAtual = agora.toLocaleTimeString('pt-BR', opcoesHora);
-
-            tarefasPontuais.forEach(t => {
-                if (!t.concluida && t.notificar && t.data === dataAtualTexto && t.hora === horaMinutoAtual && !t.notificacaoDisparada) {
-                    t.notificacaoDisparada = true;
-                    salvarDadosNoNavegador();
-                    dispararNotificacaoGlobalDoSistema(t.titulo);
-                }
-            });
-
-            tarefasFixas.forEach(f => {
-                if (f.notificar && f.hora === horaMinutoAtual) {
-                    const jaConcluidaHoje = historicoFixasConcluidas.some(h => h.tarefa_id === f.id && h.data === dataAtualTexto);
-                    if (!jaConcluidaHoje && f.ultimaNotificacaoData !== dataAtualTexto) {
-                        f.ultimaNotificacaoData = dataAtualTexto;
-                        salvarDadosNoNavegador();
-                        dispararNotificacaoGlobalDoSistema(f.titulo);
-                    }
-                }
-            });
-        }, 1000);
-
-        /* CADERNO DE NOTAS LOGIC */
-        window.renderizarListaDeNotas = function() {
-            const container = document.getElementById('container-mini-notas');
-            let htmlNotas = "";
-            cadernoDeNotas.forEach(nota => {
-                const classeSelecionada = nota.id === idNotaAtiva ? 'selecionada' : '';
-                const exibicaoData = nota.dataCriacao ? nota.dataCriacao.split(' às ')[0] : '--/--/----';
-                htmlNotas += `
-                    <div class="mini-nota-card ${classeSelecionada}" onclick="selecionarNotaParaEditar(${nota.id})">
-                        <div class="mini-nota-topo">
-                            <h4>${nota.titulo || "Nota sem título"}</h4>
-                            <button class="btn-deletar-nota" onclick="excluirNotaDefinitivo(event, ${nota.id})">🗑️</button>
-                        </div>
-                        <span class="mini-nota-data">📅 ${exibicaoData}</span>
-                    </div>
-                `;
-            });
-            container.innerHTML = htmlNotas || "<p style='color:#a0aec0; font-size:0.85rem; font-style:italic;'>Nenhuma nota criada.</p>";
-        }
-
-        window.criarNovaNotaEmBranco = function() {
-            const novaNota = { id: Date.now(), titulo: "Nova Nota " + (cadernoDeNotas.length + 1), texto: "", dataCriacao: gerarStringDataHoraAtual() };
-            cadernoDeNotas.push(novaNota);
-            localStorage.setItem('cadernoDeNotas', JSON.stringify(cadernoDeNotas));
-            selecionarNotaParaEditar(novaNota.id);
-        }
-
-        window.selecionarNotaParaEditar = function(id) {
-            idNotaAtiva = id;
-            const nota = cadernoDeNotas.find(n => n.id === id);
-            if (nota) {
-                document.getElementById('aviso-nenhuma-nota').style.display = "none";
-                document.getElementById('area-editor-nota').style.display = "flex";
-                document.getElementById('nota-titulo-input').value = nota.titulo;
-                document.getElementById('nota-texto-textarea').value = nota.texto;
-                document.getElementById('nota-criada-em-texto').innerText = `Criada em: ${nota.dataCriacao || 'Desconhecida'}`;
-            }
-            renderizarListaDeNotas();
-        }
-
-        window.salvarNotaAtivaNoNavegador = function() {
-            if (!idNotaAtiva) return;
-            const nota = cadernoDeNotas.find(n => n.id === idNotaAtiva);
-            if (nota) {
-                nota.titulo = document.getElementById('nota-titulo-input').value;
-                nota.texto = document.getElementById('nota-texto-textarea').value;
-                localStorage.setItem('cadernoDeNotas', JSON.stringify(cadernoDeNotas));
-                const status = document.getElementById('status-nota');
-                status.innerText = "✏️ Escrevendo e salvando...";
-                clearTimeout(window.timerNotasAvancado);
-                window.timerNotasAvancado = setTimeout(() => { status.innerText = "✅ Salvo com sucesso."; renderizarListaDeNotas(); }, 500);
-            }
-        }
-
-        window.excluirNotaDefinitivo = function(evento, id) {
-            evento.stopPropagation();
-            if (confirm("Deseja mesmo apagar essa nota inteira?")) {
-                cadernoDeNotas = cadernoDeNotas.filter(n => n.id !== id);
-                localStorage.setItem('cadernoDeNotas', JSON.stringify(cadernoDeNotas));
-                if (idNotaAtiva === id) {
-                    idNotaAtiva = null;
-                    document.getElementById('area-editor-nota').style.display = "none";
-                    document.getElementById('aviso-nenhuma-nota').style.display = "flex";
-                }
-                renderizarListaDeNotas();
-            }
-        }
-
-        /* AGENDA LOGIC */
-        window.mudarDia = function(diasParaSomar) {
-            dataFocoObjeto.setDate(dataFocoObjeto.getDate() + diasParaSomar);
-            document.getElementById('input-data-tarefa').value = obtenerDataFormatada(dataFocoObjeto);
-            renderizarAplicativo();
-        }
-
-        window.ajustarCamposFormulario = function() {
-            const tipo = document.getElementById('select-tipo').value;
-            const containerData = document.getElementById('container-data');
-            const labelHora = document.getElementById('label-hora');
-            if (tipo === 'fixa') {
-                containerData.style.display = "none";
-                labelHora.innerText = "Horário da Rotina";
-            } else {
-                containerData.style.display = "block";
-                labelHora.innerText = "Horário (Opcional)";
-                document.getElementById('input-data-tarefa').value = obtenerDataFormatada(dataFocoObjeto);
-            }
-        }
-
-        window.adicionarNovaTarefa = function() {
-            const titulo = document.getElementById('input-titulo').value.trim();
-            const tipo = document.getElementById('select-tipo').value;
-            const categoria = document.getElementById('select-categoria').value;
-            const valorData = document.getElementById('input-data-tarefa').value;
-            const valorHora = document.getElementById('input-hora-tarefa').value;
-            const querNotificacao = document.getElementById('input-notificar').checked;
-
-            if (!titulo) { alert("Por favor, digite o nome da tarefa!"); return; }
-
-            const novoId = Date.now();
-
-            if (tipo === 'pontual') {
-                tarefasPontuais.push({ 
-                    id: novoId, 
-                    titulo: titulo, 
-                    data: valorData, 
-                    hora: valorHora || null, 
-                    categoria: categoria,
-                    notificar: querNotificacao,
-                    notificacaoDisparada: false,
-                    concluida: false 
-                });
-            } else {
-                tarefasFixas.push({ 
-                    id: novoId, 
-                    titulo: titulo, 
-                    hora: valorHora || "00:00",
-                    categoria: categoria,
-                    notificar: querNotificacao,
-                    ultimaNotificacaoData: null
-                });
-            }
-
-            document.getElementById('input-titulo').value = "";
-            document.getElementById('input-notificar').checked = false;
-            salvarDadosNoNavegador();
-            renderizarAplicativo();
-        }
-
-        window.alternarStatus = function(id, tipo) {
-            const dataFocoTexto = obtenerDataFormatada(dataFocoObjeto);
-            const stringHoraData = gerarStringDataHoraAtual();
-
-            if (tipo === 'pontual') {
-                const tarefa = tarefasPontuais.find(t => t.id === id);
-                if (tarefa) {
-                    tarefa.concluida = !tarefa.concluida;
-                    if(!tarefa.concluida) {
-                        tarefa.notificacaoDisparada = false;
-                        historicoGeralConcluidas = historicoGeralConcluidas.filter(h => h.id_original !== id);
-                    } else {
-                        historicoGeralConcluidas.push({ id: Date.now(), id_original: id, titulo: tarefa.titulo, concluidaEm: stringHoraData, tag: 'Única' });
-                    }
-                }
-            } else if (tipo === 'fixa') {
-                const index = historicoFixasConcluidas.findIndex(h => h.tarefa_id === id && h.data === dataFocoTexto);
-                const tarefaFixa = tarefasFixas.find(f => f.id === id);
-                if (index > -1) {
-                    historicoFixasConcluidas.splice(index, 1);
-                    historicoGeralConcluidas = historicoGeralConcluidas.filter(h => !(h.id_original === id && h.concluidaEm.includes(dataFocoTexto.split('-').reverse().join('/'))));
-                } else {
-                    historicoFixasConcluidas.push({ tarefa_id: id, data: dataFocoTexto });
-                    if(tarefaFixa) {
-                        historicoGeralConcluidas.push({ id: Date.now(), id_original: id, titulo: tarefaFixa.titulo, concluidaEm: stringHoraData, tag: 'Rotina' });
-                    }
-                }
-            }
-            salvarDadosNoNavegador();
-            renderizarAplicativo();
-        }
-
-        window.moverParaLixeira = function(id, tipo) {
-            if (tipo === 'pontual') {
-                const tarefa = tarefasPontuais.find(t => t.id === id);
-                if (tarefa) {
-                    lixeira.push({ ...tarefa, tipoOriginal: 'pontual' });
-                    tarefasPontuais = tarefasPontuais.filter(t => t.id !== id);
-                    historicoGeralConcluidas = historicoGeralConcluidas.filter(h => h.id_original !== id);
-                }
-            } else {
-                const tarefa = tarefasFixas.find(f => f.id === id);
-                if (tarefa) {
-                    lixeira.push({ ...tarefa, tipoOriginal: 'fixa' });
-                    tarefasFixas = tarefasFixas.filter(f => f.id !== id);
-                    historicoGeralConcluidas = historicoGeralConcluidas.filter(h => h.id_original !== id);
-                }
-            }
-            salvarDadosNoNavegador();
-            renderizarAplicativo();
-        }
-
-        window.restaurarTarefa = function(id) {
-            const item = lixeira.find(i => i.id === id);
-            if (item) {
-                if (item.tipoOriginal === 'pontual') {
-                    delete item.tipoOriginal;
-                    tarefasPontuais.push(item);
-                } else {
-                    delete item.tipoOriginal;
-                    tarefasFixas.push(item);
-                }
-                lixeira = lixeira.filter(i => i.id !== id);
-                salvarDadosNoNavegador();
-                renderizarAplicativo();
-            }
-        }
-
-        window.excluirDefinitivamente = function(id) {
-            if (confirm("Alerta: Isso apagará a tarefa para sempre!")) {
-                lixeira = lixeira.filter(i => i.id !== id);
-                salvarDadosNoNavegador();
-                renderizarAplicativo();
-            }
-        }
-
-        function traduzirCategoria(cat) {
-            const mapa = { padrao: '🔵 Padrão', trabalho: '🟡 Trabalho', pessoal: '🟢 Pessoal', urgente: '🔴 Urgente' };
-            return mapa[cat] || '🔵 Padrão';
-        }
-
-        function renderizarAplicativo() {
-            const dataFocoTexto = obtenerDataFormatada(dataFocoObjeto);
-            const partesData = dataFocoTexto.split('-');
-            
-            document.getElementById('campo-data').innerText = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
-            
-            const diaSemanaIndex = dataFocoObjeto.getDay();
-            document.getElementById('campo-dia-da-semana').innerText = diasSemanaPorExtenso[diaSemanaIndex];
-            
-            document.getElementById('contador-lixeira-menu').innerText = lixeira.length;
-
-            const containerLista = document.getElementById('lista-html');
-            let conteudoAgenda = "";
-
-            tarefasPontuais.forEach(t => {
-                if(t.data === dataFocoTexto) {
-                    const statusClasse = t.concluida ? 'feita' : '';
-                    const btnClasse = t.concluida ? 'concluida' : 'pendente';
-                    const btnTexto = t.concluida ? '✅ Feito' : '❌ Pendente';
-                    const textHorario = t.hora ? `⏰ Marcada para às ${t.hora}` : `📅 O dia todo`;
-                    const badgeNotif = t.notificar ? `<span class="badge-notif">🔔 Alerta Ativo</span>` : '';
-                    const categoriaClasse = `cat-${t.categoria || 'padrao'}`;
-                    const labelCategoria = traduzirCategoria(t.categoria);
-
-                    conteudoAgenda += `
-                        <div class="tarefa-card ${categoriaClasse} ${statusClasse}">
-                            <div class="tarefa-info">
-                                <h3>${t.titulo}</h3>
-                                <small class="tarefa-horario">${textHorario} ${badgeNotif}</small>
-                                <span class="badge-tipo badge-pontual">Tarefa Única</span>
-                                <span class="badge-cat badge-cat-${t.categoria || 'padrao'}">${labelCategoria}</span>
-                            </div>
-                            <div class="acoes-tarefa">
-                                <button class="btn-status ${btnClasse}" onclick="alternarStatus(${t.id}, 'pontual')">${btnTexto}</button>
-                                <button class="btn-excluir" onclick="moverParaLixeira(${t.id}, 'pontual')">🗑️</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            tarefasFixas.forEach(f => {
-                const fixaConcluidaNesseDia = historicoFixasConcluidas.some(h => h.tarefa_id === f.id && h.data === dataFocoTexto);
-                const statusClasse = fixaConcluidaNesseDia ? 'feita' : '';
-                const btnClasse = fixaConcluidaNesseDia ? 'concluida' : 'pendente';
-                const btnTexto = fixaConcluidaNesseDia ? '✅ Feito' : '❌ Pendente';
-                const badgeNotif = f.notificar ? `<span class="badge-notif">🔔 Alerta Ativo</span>` : '';
-                const categoriaClasse = `cat-${f.categoria || 'padrao'}`;
-                const labelCategoria = traduzirCategoria(f.categoria);
-
-                conteudoAgenda += `
-                    <div class="tarefa-card fixa ${categoriaClasse} ${statusClasse}">
-                        <div class="tarefa-info">
-                            <h3>${f.titulo}</h3>
-                            <small class="tarefa-horario">🔁 Diariamente às ${f.hora} ${badgeNotif}</small>
-                            <span class="badge-tipo badge-fixa">Rotina Fixa</span>
-                            <span class="badge-cat badge-cat-${f.categoria || 'padrao'}">${labelCategoria}</span>
-                        </div>
-                        <div class="acoes-tarefa">
-                            <button class="btn-status ${btnClasse}" onclick="alternarStatus(${f.id}, 'fixa')">${btnTexto}</button>
-                            <button class="btn-excluir" onclick="moverParaLixeira(${f.id}, 'fixa')">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            containerLista.innerHTML = conteudoAgenda || "<p style='color: #a0aec0; text-align:center;'>Nenhuma tarefa marcada para este dia.</p>";
-
-            // RENDERIZAR LIXEIRA
-            const containerLixeira = document.getElementById('lixeira-html');
-            let conteudoLixeira = "";
-            if (lixeira.length === 0) {
-                conteudoLixeira = `<div class="lixeira-vazia">A lixeira está vazia.</div>`;
-            } else {
-                lixeira.forEach(item => {
-                    const infoComplementar = item.tipoOriginal === 'pontual' ? `Única: ${item.data.split('-').reverse().join('/')} ${item.hora ? 'às ' + item.hora : ''}` : `Rotina das ${item.hora}`;
-                    conteudoLixeira += `
-                        <div class="tarefa-card lixeira-item">
-                            <div class="tarefa-info">
-                                <h3>${item.titulo}</h3>
-                                <small style="color: #718096">${infoComplementar}</small>
-                            </div>
-                            <div class="botoes-lixeira">
-                                <button class="btn-restaurar-item" onclick="restaurarTarefa(${item.id})">🔄 Restaurar</button>
-                                <button class="btn-deletar-item-de-vez" onclick="excluirDefinitivamente(${item.id})">💥 Apagar de Vez</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-            containerLixeira.innerHTML = conteudoLixeira;
-
-            // RENDERIZAR HISTÓRICO GERAL
-            const containerHistorico = document.getElementById('historico-html');
-            let conteudoHistorico = "";
-            if(historicoGeralConcluidas.length === 0) {
-                conteudoHistorico = `<div class="historico-vazio">Nenhuma tarefa concluída no histórico ainda.</div>`;
-            } else {
-                // Exibe as mais recentes primeiro
-                [...historicoGeralConcluidas].reverse().forEach(h => {
-                    conteudoHistorico += `
-                        <div class="tarefa-card historico-item">
-                            <div class="tarefa-info">
-                                <h3>${h.titulo}</h3>
-                                <small style="color:#718096">📌 Tipo: ${h.tag} | ✅ Concluída em: ${h.concluidaEm}</small>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-            containerHistorico.innerHTML = conteudoHistorico;
-        }
-
-        renderizarAplicativo();
     </script>
 </body>
 </html>
