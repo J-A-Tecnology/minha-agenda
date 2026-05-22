@@ -3,918 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Agenda Ultimate Pro Dashboard</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        window.fbModules = { initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, getFirestore, doc, setDoc, getDoc, onSnapshot };
-    </script>
-
+    <title>Painel de Agendamento Inteligente</title>
     <style>
-        :root {
-            --bg-body: #f4f6f9;
-            --bg-card: #ffffff;
-            --text-main: #333333;
-            --text-muted: #7f8c8d;
-            --border-color: #dcdde1;
-            --header-bg: #ffffff;
-            --sidebar-bg: #2c3e50;
+        /* Estilos do painel adaptados para visualização sem Firebase */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
         }
-
-        [data-theme="escuro"] {
-            --bg-body: #121212;
-            --bg-card: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --border-color: #333333;
-            --header-bg: #1e1e1e;
-            --sidebar-bg: #181818;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
-
-        [data-theme="azul-noturno"] {
-            --bg-body: #0f172a;
-            --bg-card: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --header-bg: #1e293b;
-            --sidebar-bg: #0f172a;
-        }
-
-        [data-theme="cyberpunk"] {
-            --bg-body: #0a0a12;
-            --bg-card: #121222;
-            --text-main: #00ffcc;
-            --text-muted: #ff007f;
-            --border-color: #ff007f;
-            --header-bg: #121222;
-            --sidebar-bg: #1a0033;
-        }
-
-        [data-theme="floresta"] {
-            --bg-body: #f1f3f0;
-            --bg-card: #ffffff;
-            --text-main: #2d4a22;
-            --text-muted: #6e8e5d;
-            --border-color: #c3d3bc;
-            --header-bg: #e2ebd5;
-            --sidebar-bg: #2d4a22;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: var(--bg-body); 
-            padding: 20px; 
-            color: var(--text-main); 
-            overflow-x: hidden; 
-            transition: background 0.3s, color 0.3s; 
-            min-height: 100vh;
-            position: relative;
-        }
-
-        .sticker {
-            position: absolute;
-            font-size: 50px;
-            cursor: move;
-            user-select: none;
-            z-index: 1000;
-            display: inline-block;
-            padding: 5px;
-        }
-        .sticker .btn-del-sticker {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            font-size: 12px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            display: none;
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            margin-bottom: 20px;
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
         }
-        .sticker:hover .btn-del-sticker { display: flex; }
-
-        .sidebar { 
-            position: fixed; top: 0; left: -380px; width: 380px; height: 100%; 
-            background-color: var(--sidebar-bg); 
-            background-size: cover; background-position: center;
-            color: white; padding: 25px; box-shadow: 4px 0 10px rgba(0,0,0,0.2); 
-            transition: left 0.3s ease-in-out; z-index: 2000; overflow-y: auto; 
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        .sidebar.active { left: 0 !important; }
+        .btn-status { background-color: #2e7d32; color: white; cursor: default; }
+        .btn-backup { background-color: #0288d1; color: white; }
+        .btn-restore { background-color: #f57c00; color: white; }
         
-        .sidebar-content-wrapper {
-            background: rgba(20, 30, 40, 0.75);
-            margin: -25px;
-            padding: 25px;
-            min-height: 100%;
-            backdrop-filter: blur(4px);
+        .backup-controls {
+            display: flex;
+            gap: 10px;
+        }
+        #file-input { display: none; }
+
+        .form-agenda {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label { display: block; margin-bottom: 5px; color: #b3b3b3; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: white;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .btn-add {
+            width: 100%;
+            background-color: #00bcd4;
+            color: black;
+            font-size: 16px;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
         }
 
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; }
-        .sidebar-close { background: none; border: none; color: #bdc3c7; font-size: 20px; cursor: pointer; }
-
-        .header-main { display: flex; justify-content: space-between; align-items: center; background-color: var(--header-bg); padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; flex-wrap: wrap; gap: 15px; border: 1px solid var(--border-color); }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .menu-btn { background-color: #34495e; color: white; border: none; padding: 10px 12px; border-radius: 6px; font-size: 18px; cursor: pointer; }
-        .title-area h1 { font-size: 24px; color: #3498db; }
-        
-        .auth-block { margin-top: 8px; }
-        .btn-google-login { background: #fff; color: #444; border: 1px solid #ddd; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; }
-        .btn-google-login:hover { background: #f5f5f5; }
-        .user-logged-info { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
-        .user-logged-info img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #3498db; }
-        .btn-logout { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 12px; text-decoration: underline; padding: 0; }
-
-        .header-widgets { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .clock-container { background-color: #1a252f; color: #fff; padding: 10px 20px; border-radius: 6px; text-align: right; font-weight: bold; }
-        .clock-time { font-size: 20px; letter-spacing: 1px; color: #3498db; }
-        .clock-date { font-size: 11px; color: #bdc3c7; margin-top: 2px; }
-
-        .pomodoro-box { background: #e74c3c; color: white; padding: 10px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .pomo-editable, .pomo-editable-time { border-bottom: 1px dashed white; cursor: pointer; padding: 0 2px; }
-        .pomo-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-
-        .gamification-banner { background: linear-gradient(135deg, #8e44ad, #3498db); padding: 15px; border-radius: 6px; margin-bottom: 15px; color: white; }
-        .xp-bar-container { background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 8px; overflow: hidden; height: 12px; }
-        .xp-bar-fill { background: #2ecc71; height: 100%; width: 0%; transition: width 0.4s; }
-
-        .menu-tabs { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { flex: 1; padding: 10px 4px; background: rgba(255,255,255,0.15); border: none; color: #e2e8f0; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; text-align: center; }
-        .tab-btn.active { background: #3498db; color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .theme-select-box { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
-        .theme-option-btn { padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; }
-
-        .sticker-selector-container { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .sticker-scroll-grid { 
-            display: grid !important; 
-            grid-template-columns: repeat(6, 1fr) !important; 
-            gap: 10px !important; 
-            max-height: 200px !important; 
-            overflow-y: auto !important; 
-            font-size: 26px; 
-            padding: 8px; 
-            background: rgba(0,0,0,0.2) !important; 
-            border-radius: 6px; 
+        .lista-tarefas {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
         }
-        .sticker-opt { cursor: pointer; text-align: center; transition: transform 0.1s; user-select: none; display: inline-block; }
-        .sticker-opt:hover { transform: scale(1.3); }
-
-        .stats-panel, .trash-item { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 6px; margin-bottom: 15px; }
-        .stat-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
-        .io-btn { background: #34495e; color: white; border: 1px solid #555; padding: 10px; font-size: 13px; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .excel-btn { background: #2ecc71 !important; color: white !important; border: none !important; }
-
-        .notes-popup-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 3000; padding: 20px; }
-        .notes-popup-modal.active { display: flex; }
-        .notes-popup-card { background: var(--bg-card); color: var(--text-main); width: 100%; max-width: 800px; height: 85vh; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--border-color); animation: fadeIn 0.2s ease-out; }
-        .notes-popup-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .notes-popup-split { display: grid; grid-template-columns: 280px 1fr; flex: 1; overflow: hidden; }
-        @media(max-width: 650px) { .notes-popup-split { grid-template-columns: 1fr; } .notes-left-panel { display: none; } }
-        .notes-left-panel { border-right: 1px solid var(--border-color); padding: 15px; background: rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 10px; }
-        .notes-main-editor { padding: 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-        .notes-list-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .mini-note-item { background: rgba(0,0,0,0.04); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; cursor: pointer; position: relative; }
-        .mini-note-item:hover { background: rgba(52, 152, 219, 0.1); }
-        .mini-note-item.archived-style { border-left: 4px solid #95a5a6; opacity: 0.7; }
-        .note-badge-archived { font-size: 10px; background: #95a5a6; color: white; padding: 1px 4px; border-radius: 3px; }
-
-        .view-switcher { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
-        .view-btn { padding: 10px 20px; border: none; background-color: var(--bg-card); color: var(--text-main); font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s; border: 1px solid var(--border-color); }
-        .view-btn.active { background-color: #3498db; color: white; border-color: #3498db; }
-
-        .navigation-bar { display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-card); padding: 12px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border-color); }
-        .nav-btn { background-color: #2980b9; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .current-date { font-size: 18px; font-weight: bold; }
-        .card-form, .tasks-container { background-color: var(--bg-card); padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border-color); }
-        
-        .input-text, .select-field, .input-date, .input-time { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px; background-color: rgba(0,0,0,0.02); color: var(--text-main); }
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-        .form-col { flex: 1; min-width: 140px; }
-        .btn-add { width: 100%; background-color: #2a9d8f; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .btn-add:disabled { background-color: #7f8c8d; cursor: not-allowed; }
-        .btn-edit-mode { background-color: #e67e22 !important; }
-
-        .week-view-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
-        .week-day-card { background-color: var(--bg-card); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; text-align: center; }
-        .week-day-card.selected { border-color: #3498db; background-color: rgba(52, 152, 219, 0.1); }
-        .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background-color: var(--border-color); padding: 5px; border-radius: 6px; }
-        .month-grid-header { font-weight: bold; text-align: center; padding: 8px 0; background-color: var(--bg-card); font-size: 12px; }
-        .month-cell { background-color: var(--bg-card); min-height: 75px; padding: 6px; position: relative; cursor: pointer; }
-        .month-cell.current-active { background-color: rgba(52, 152, 219, 0.12); border: 1px solid #3498db; }
-        .month-cell.other-month { opacity: 0.35; }
-        .month-task-indicator { background: #e67e22; width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 2px; }
-
-        .task-item { display: flex; flex-direction: column; gap: 10px; padding: 15px; background-color: rgba(0,0,0,0.02); border-radius: 6px; margin-top: 10px; border: 1px solid var(--border-color); position: relative; }
-        .task-top-wrapper { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .task-item.cor-azul { border-left: 6px solid #3498db; }
-        .task-item.cor-vermelho { border-left: 6px solid #e74c3c; }
-        .task-item.cor-verde { border-left: 6px solid #2ecc71; }
-        .task-item.cor-amarelo { border-left: 6px solid #f1c40f; }
-        
-        .check-btn { background: none; border: 2px solid var(--text-muted); width: 22px; height: 22px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 11px; }
-        .task-item.completed { opacity: 0.5; }
-        .task-item.completed .check-btn { background-color: #2ecc71; border-color: #2ecc71; color: white; }
-        .task-item.completed .task-title-text { text-decoration: line-through; color: var(--text-muted); }
-        
-        .btn-edit-task { background: none; border: none; color: #e67e22; cursor: pointer; font-size: 15px; }
-
-        .subtasks-wrapper { background: var(--bg-card); padding: 8px 12px; border-radius: 4px; margin-top: 5px; border: 1px solid var(--border-color); }
-        .subtask-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 4px 0; }
-        .subtask-row.done { text-decoration: line-through; opacity: 0.6; }
-
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1500; }
-        .sidebar-overlay.active { display: block !important; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .card-tarefa {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid #00bcd4;
+        }
+        .info-tarefa {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .hora-tarefa { color: #00bcd4; font-weight: bold; }
+        .titulo-tarefa { font-size: 16px; }
+        .badge-tarefa {
+            font-size: 12px;
+            background-color: #3a3a3a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            width: max-content;
+            color: #b3b3b3;
+        }
+        .btn-deletar {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .texto-vazio {
+            color: #b3b3b3;
+            text-align: center;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
 
-    <div id="stickers-board-layer"></div>
-    <div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
-    
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-content-wrapper">
-            <div class="sidebar-header">
-                <h3>Painel de Controle</h3>
-                <button class="sidebar-close" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <div class="gamification-banner">
-                <div><i class="fa-solid fa-trophy"></i> Nível Produtivo: <span id="user-level">1</span></div>
-                <div style="font-size: 11px; margin-top: 4px;">XP Atual: <span id="user-xp">0</span> / 100</div>
-                <div class="xp-bar-container"><div class="xp-bar-fill" id="xp-fill-bar"></div></div>
-            </div>
-
-            <div class="menu-tabs">
-                <button class="tab-btn active" id="tab-link-stats" onclick="switchTab('stats')">Métricas</button>
-                <button class="tab-btn" id="tab-link-trash" onclick="switchTab('trash')">Lixeira (<span id="trash-count-badge">0</span>)</button>
-                <button class="tab-btn" id="tab-link-theme" onclick="switchTab('theme')">Customizar</button>
-            </div>
-            
-            <div class="tab-content active" id="tab-content-stats">
-                <div class="stats-panel">
-                    <h4>Seu Desempenho</h4>
-                    <div class="stat-line"><span>Total Criadas:</span> <strong id="stat-total">0</strong></div>
-                    <div class="stat-line"><span>Pendentes:</span> <strong id="stat-pendentes" style="color: #f1c40f;">0</strong></div>
-                    <div class="stat-line"><span>Concluídas:</span> <strong id="stat-concluidas" style="color: #2ecc71;">0</strong></div>
-                </div>
-                <button class="io-btn" style="background:#8e44ad; padding:12px; font-size:14px;" onclick="abrirModuloNotas()"><i class="fa-solid fa-note-sticky"></i> Abrir Bloco de Notas</button>
-            </div>
-
-            <div class="tab-content" id="tab-content-trash">
-                <div class="trash-list" id="trash-list-target"></div>
-            </div>
-
-            <div class="tab-content" id="tab-content-theme">
-                <h4 style="font-size: 12px; text-transform: uppercase; color:#bdc3c7; margin-bottom: 5px;">Estilos de Cores</h4>
-                <div class="theme-select-box">
-                    <button class="theme-option-btn" style="background: #ffffff; color: #333; border: 1px solid #ccc;" onclick="mudarTema('claro')">☀️ Claro</button>
-                    <button class="theme-option-btn" style="background: #222222; color: #fff;" onclick="mudarTema('escuro')">🌙 Escuro</button>
-                    <button class="theme-option-btn" style="background: #1e293b; color: #38bdf8;" onclick="mudarTema('azul-noturno')">🌌 Noturno</button>
-                    <button class="theme-option-btn" style="background: #ff007f; color: #00ffcc;" onclick="mudarTema('cyberpunk')">👾 Cyber</button>
-                    <button class="theme-option-btn" style="background: #2d4a22; color: #e2ebd5; grid-column: span 2;" onclick="mudarTema('floresta')">🌳 Floresta</button>
-                </div>
-
-                <h4 style="font-size: 12px; text-transform: uppercase; color:#bdc3c7; margin-top:20px;">Foto de Fundo deste Menu</h4>
-                <div style="margin-top:5px; display:flex; flex-direction:column; gap:8px; background:rgba(0,0,0,0.2); padding:10px; border-radius:6px;">
-                    <input type="file" id="bg-file-upload" accept="image/*" onchange="carregarImagemFundoArquivo(event)" style="font-size:12px; width:100%; color: #fff;">
-                    <input type="text" id="bg-url-input" style="padding:8px; border-radius:4px; border:none; color:#333; font-size:13px;" placeholder="Ou cole o link de uma imagem..." onchange="carregarImagemFundoUrl(this.value)">
-                    <button style="background:#e74c3c; color:white; border:none; padding:8px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer;" onclick="removerImagemFundo()">Remover Foto de Fundo</button>
-                </div>
-
-                <div class="sticker-selector-container">
-                    <h4 style="font-size: 12px; text-transform: uppercase; color:#bdc3c7; margin-bottom:8px;">Adesivos</h4>
-                    <div class="sticker-scroll-grid" id="sticker-box-target"></div>
-                </div>
-
-                <hr style="margin: 20px 0; border-color: rgba(255,255,255,0.2);">
-                <button class="io-btn excel-btn" onclick="exportarParaExcel()"><i class="fa-solid fa-file-excel"></i> Exportar para Excel (.xlsx)</button>
-                <button class="io-btn" onclick="exportarDados()"><i class="fa-solid fa-download"></i> Backup Local .JSON</button>
-                <button class="io-btn" onclick="document.getElementById('import-file').click()"><i class="fa-solid fa-upload"></i> Restaurar via .JSON</button>
-                <input type="file" id="import-file" style="display:none;" onchange="importarDados(event)">
-            </div>
+<div class="container">
+    <div class="header-actions">
+        <button class="btn btn-status" id="btn-status-conexao">✨ Modo Local Ativo (Sem Firebase)</button>
+        
+        <div class="backup-controls">
+            <button class="btn btn-backup" onclick="exportarBackup()">📥 Salvar Backup</button>
+            <button class="btn btn-restore" onclick="document.getElementById('file-input').click()">📤 Restaurar Backup</button>
+            <input type="file" id="file-input" accept=".json" onchange="importarBackup(event)">
         </div>
     </div>
 
-    <div class="notes-popup-modal" id="notes-modal">
-        <div class="notes-popup-card">
-            <div class="notes-popup-header">
-                <h3><i class="fa-solid fa-note-sticky"></i> Bloco de Notas & Arquivos</h3>
-                <button style="background:none; border:none; font-size:25px; cursor:pointer; color:var(--text-muted);" onclick="fecharModuloNotas()">&times;</button>
+    <div class="form-agenda">
+        <h2>+ Painel de Agendamento Inteligente</h2>
+        <form id="form-tarefa" onsubmit="adicionarNovaTarefa(event)">
+            <div class="form-group">
+                <label>O que vai fazer?</label>
+                <input type="text" id="tarefa-titulo" placeholder="Ex: Treino de Perna, Estudar Inglês..." required>
             </div>
-            <div class="notes-popup-split">
-                <div class="notes-left-panel">
-                    <h4 style="font-size:13px; text-transform:uppercase; opacity:0.7;">Minhas Notas</h4>
-                    <div class="notes-list-scroll" id="notes-modal-list"></div>
-                </div>
-                <div class="notes-main-editor">
-                    <input type="text" id="note-title" class="input-text" placeholder="Título da Anotação...">
-                    <textarea id="note-body" class="input-text" placeholder="Escreva o conteúdo completo aqui..." rows="10" style="resize:none; font-family:inherit;"></textarea>
-                    
-                    <div style="display:flex; gap:10px; margin-top:5px;">
-                        <button style="flex:2; background:#2ecc71; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="salvarNotaMódulo()">Salvar Anotação</button>
-                        <button id="btn-archive-note" style="flex:1; background:#95a5a6; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; display:none;" onclick="alternarArquivamentoNota()">Arquivar</button>
-                        <button id="btn-delete-note-real" style="background:#e74c3c; color:white; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer; display:none;" onclick="deletarNotaMódulo()"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <header class="header-main">
-        <div class="header-left">
-            <button class="menu-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
-            <div class="title-area">
-                <h1>Minha Agenda Pro</h1>
-                <div class="auth-block" id="firebase-auth-target">
-                    <button class="btn-google-login" onclick="loginComGoogle()"><i class="fa-brands fa-google" style="color: #4285F4;"></i> Entrar com o Google</button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="header-widgets">
-            <div class="pomodoro-box" id="pomo-widget">
-                <span id="pomo-label" class="pomo-editable" onclick="editarNomePomodoro()"><i class="fa-solid fa-brain"></i> Foco</span>:
-                <span id="pomo-time" class="pomo-editable-time" onclick="editarTempoPomodoro()">25:00</span>
-                <button class="pomo-btn" id="pomo-start-btn" onclick="togglePomodoro()">Iniciar</button>
-            </div>
-            
-            <div class="clock-container">
-                <div class="clock-time" id="live-clock">00:00:00</div>
-                <div class="clock-date" id="live-date">22/05/2026</div>
-            </div>
-        </div>
-    </header>
-
-    <nav class="view-switcher">
-        <button class="view-btn active" id="btn-view-dia" onclick="alterarModoVisualizacao('dia')">Dia</button>
-        <button class="view-btn" id="btn-view-semana" onclick="alterarModoVisualizacao('semana')">Semana</button>
-        <button class="view-btn" id="btn-view-mes" onclick="alterarModoVisualizacao('mes')">Mês</button>
-    </nav>
-
-    <div class="day-label" id="day-of-week-label" style="text-align:center; font-weight:bold; font-size:18px; margin-bottom:10px;">Sexta-Feira</div>
-
-    <section class="navigation-bar">
-        <button class="nav-btn" onclick="navegarData(-1)"><i class="fa-solid fa-caret-left"></i> Anterior</button>
-        <span class="current-date" id="display-date">22/05/2026</span>
-        <button class="nav-btn" onclick="navegarData(1)">Próximo <i class="fa-solid fa-caret-right"></i></button>
-    </section>
-
-    <div id="container-visao-semana" style="display: none;"><div class="week-view-container" id="week-grid-target"></div></div>
-    <div id="container-visao-mes" style="display: none;" class="card-form"><div class="month-grid" id="month-grid-target"></div></div>
-
-    <main class="card-form" id="main-task-form">
-        <h2 class="card-title" id="form-action-title" style="margin-bottom:15px;"><i class="fa-solid fa-plus"></i> Painel de Agendamento Inteligente</h2>
-        
-        <div class="form-row">
-            <div class="form-col" style="flex: 2;">
-                <label>O que você vai fazer?</label>
-                <input type="text" class="input-text" id="task-name" placeholder="Ex: Treino de Perna, Estudar Inglês...">
-            </div>
-            <div class="form-col">
+            <div class="form-group">
                 <label>Frequência / Rotina</label>
-                <select class="select-field" id="task-frequency">
-                    <option value="Pontual">Tarefa Única</option>
-                    <option value="Fixa">🔁 Hábito Diário</option>
+                <select id="tarefa-tipo">
+                    <option value="Tarefa Única">Tarefa Única</option>
+                    <option value="Rotina Diária">Rotina Diária</option>
+                    <option value="Semanal">Semanal</option>
                 </select>
             </div>
-        </div>
-
-        <div class="form-row">
-            <div class="form-col">
-                <label>Categoria (Cor)</label>
-                <select class="select-field" id="task-category">
-                    <option value="azul">🔵 Padrão (Azul)</option>
-                    <option value="vermelho">🔴 Urgente (Vermelho)</option>
-                    <option value="verde">🟢 Pessoal (Verde)</option>
-                    <option value="amarelo">🟡 Trabalho (Amarelo)</option>
-                </select>
-            </div>
-            <div class="form-col">
-                <label>Ícone Temático</label>
-                <select class="select-field" id="task-icon">
-                    <option value="fa-circle-check">📌 Geral</option>
-                    <option value="fa-briefcase">💻 Trabalho / Estudo</option>
-                    <option value="fa-dumbbell">🏋️ Saúde / Esporte</option>
-                    <option value="fa-wallet">💰 Finanças / Banco</option>
-                </select>
-            </div>
-            <div class="form-col">
-                <label>Data</label>
-                <input type="text" class="input-date" id="task-date-input" readonly>
-            </div>
-            <div class="form-col">
+            <div class="form-group">
                 <label>Horário</label>
-                <input type="time" class="input-time" id="task-time" value="12:00">
+                <input type="time" id="tarefa-hora" required>
             </div>
-        </div>
+            <button type="submit" class="btn btn-add">Adicionar na Agenda (+XP)</button>
+        </form>
+    </div>
 
-        <div class="form-group" id="subtasks-input-container" style="margin-bottom:15px;">
-            <label style="display:block; margin-bottom:5px;">Subtarefas / Checklist <span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(Separe os itens por vírgula)</span></label>
-            <input type="text" class="input-text" id="task-subtasks" placeholder="Ex: Aquecimento, Agachamento, Cardio">
-        </div>
+    <div class="lista-tarefas">
+        <h3>TAREFAS DO DIA</h3>
+        <div id="container-tarefas">
+            </div>
+    </div>
+</div>
 
-        <button type="button" class="btn-add" id="btn-submit-task" onclick="salvarTarefa()" disabled>A carregar base de dados...</button>
-    </main>
+<script>
+    // 1. GESTÃO DO BANCO DE DADOS LOCAL (LocalStorage)
+    const dbLocalStorage = {
+        getTarefas: function() {
+            const dados = localStorage.getItem('ja_agenda_tarefas');
+            // Se o LocalStorage estiver vazio, inicia com as duas tarefas originais que tinhas guardadas!
+            return dados ? JSON.parse(dados) : [
+                { id: "1779458301815", titulo: "João", hora: "13:00", tipo: "Tarefa Única" },
+                { id: "1779457320288", titulo: "jodfa", hora: "09:08", tipo: "Rotina Diária" }
+            ];
+        },
+        salvarTarefas: function(tarefas) {
+            localStorage.setItem('ja_agenda_tarefas', JSON.stringify(tarefas));
+        }
+    };
 
-    <section class="tasks-container">
-        <h3 id="tasks-list-title" style="font-size: 14px; margin-bottom: 5px; text-transform: uppercase; font-weight: bold;">Tarefas do Dia</h3>
-        <div id="tasks-list"></div>
-    </section>
+    // 2. SOLUÇÃO DO ERRO DA LIXEIRA (renderizarLixeira is not defined)
+    function renderizarLixeira(id) {
+        return `<button type="button" onclick="removerTarefa('${id}')" class="btn-deletar" title="Apagar tarefa">🗑️</button>`;
+    }
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAdyGKfXLfms4f5eUnRjXfQlJ8kD4L7fEI",
-            authDomain: "ja-agenda.firebaseapp.com",
-            projectId: "ja-agenda",
-            storageBucket: "ja-agenda.firebasestorage.app",
-            messagingSenderId: "1043324756685",
-            appId: "1:1043324756685:web:4c673d833ffbb3e8cd7f84"
-        };
-
-        let db, auth, currentUser = null;
-        let isFirebaseCarregado = false;
+    // 3. ADICIONAR TAREFA NO LOCAL STORAGE
+    function adicionarNovaTarefa(event) {
+        event.preventDefault();
         
-        // Criamos a data de forma segura e estrita usando fuso local controlado por strings puras
-        let dataAtual = criarDataSemFusoHorario(2026, 5, 22);
+        const titulo = document.getElementById('tarefa-titulo').value;
+        const tipo = document.getElementById('tarefa-tipo').value;
+        const hora = document.getElementById('tarefa-hora').value;
+        const id = Date.now().toString(); // Cria uma identificação única para a tarefa
+
+        const novasTarefas = dbLocalStorage.getTarefas();
+        novasTarefas.push({ id, titulo, hora, tipo });
         
-        let modoVisualizacao = 'dia';
-        let idTarefaEmEdicao = null;
-        let idNotaEmEdicao = null;
+        dbLocalStorage.salvarTarefas(novasTarefas);
+        carregarTarefasNaTela();
         
-        let listaDeTarefas = [];
-        let lixeiraDeTarefas = [];
-        let listaDeNotas = [];
-        let listaDeStickers = [];
-        let userXP = 0;
-        let userLevel = 1;
+        document.getElementById('form-tarefa').reset();
+    }
 
-        let pomoInterval = null;
-        let pomoMinutosPadrao = 25;
-        let pomoTempoRestante = 25 * 60;
-        let pomoNomeCustomizado = "Foco";
+    // 4. REMOVER TAREFA COM SEGURANÇA
+    function removerTarefa(id) {
+        if(confirm("Tens a certeza que desejas apagar esta atividade?")) {
+            let tarefas = dbLocalStorage.getTarefas();
+            tarefas = tarefas.filter(t => t.id !== id);
+            dbLocalStorage.salvarTarefas(tarefas);
+            carregarTarefasNaTela();
+        }
+    }
 
-        function criarDataSemFusoHorario(ano, mes, dia) {
-            let d = new Date();
-            d.setFullYear(ano, mes - 1, dia);
-            d.setHours(0, 0, 0, 0);
-            return d;
+    // 5. RENDERIZAR AS TAREFAS NA TELA DO SITE
+    function carregarTarefasNaTela() {
+        const tarefas = dbLocalStorage.getTarefas();
+        const container = document.getElementById('container-tarefas');
+        
+        if (!container) return;
+        
+        // Ordena as tarefas automaticamente do horário mais cedo para o mais tarde
+        tarefas.sort((a, b) => a.hora.localeCompare(b.hora));
+        
+        if (tarefas.length === 0) {
+            container.innerHTML = '<p class="texto-vazio">Nenhuma atividade agendada para hoje.</p>';
+            return;
         }
 
-        function converterIsoParaDataLocal(isoString) {
-            let partes = isoString.split('T')[0].split('-');
-            return criarDataSemFusoHorario(parseInt(partes[0]), parseInt(partes[1]), parseInt(partes[2]));
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const { initializeApp, getAuth, GoogleAuthProvider, onAuthStateChanged, getFirestore } = window.fbModules;
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-
-            mudarTema(localStorage.getItem('minha_agenda_tema') || 'claro');
-            aplicarFundoSalvo();
-            startClock();
-            montarCatalogoEmojis();
-            atualizarInterface();
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    currentUser = user;
-                    atualizarElementoAuthUI(user);
-                    escutarDadosNuvem(user.email);
-                } else {
-                    currentUser = null;
-                    isFirebaseCarregado = true;
-                    resetarDadosInterfaceParaDeslogado();
-                }
-            });
-        });
-
-        function loginComGoogle() {
-            const { signInWithPopup, GoogleAuthProvider } = window.fbModules;
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).catch(err => alert("Erro ao fazer login: " + err.message));
-        }
-
-        function fazerLogout() {
-            window.fbModules.signOut(auth).then(() => {
-                window.location.reload();
-            });
-        }
-
-        function atualizarElementoAuthUI(user) {
-            const container = document.getElementById('firebase-auth-target');
-            container.innerHTML = `
-                <div class="user-logged-info">
-                    <img src="${user.photoURL || 'https://via.placeholder.com/30'}" alt="Avatar">
-                    <div>
-                        <strong>${user.displayName}</strong><br>
-                        <button class="btn-logout" onclick="fazerLogout()">Sair da Conta</button>
-                    </div>
+        container.innerHTML = tarefas.map(tarefa => `
+            <div class="card-tarefa" id="tarefa-${tarefa.id}">
+                <div class="info-tarefa">
+                    <span class="hora-tarefa">⏰ ${tarefa.hora}</span>
+                    <span class="titulo-tarefa">${tarefa.titulo}</span>
+                    <span class="badge-tarefa">${tarefa.tipo}</span>
                 </div>
-            `;
-        }
+                <div class="acoes-tarefa">
+                    ${renderizarLixeira(tarefa.id)}
+                </div>
+            </div>
+        `).join('');
+    }
 
-        function resetarDadosInterfaceParaDeslogado() {
-            document.getElementById('firebase-auth-target').innerHTML = `
-                <button class="btn-google-login" onclick="loginComGoogle()"><i class="fa-brands fa-google" style="color: #4285F4;"></i> Entrar com o Google</button>
-            `;
-            listaDeTarefas = []; lixeiraDeTarefas = []; listaDeNotas = []; listaDeStickers = [];
-            userXP = 0; userLevel = 1;
-            
-            const btnSubmit = document.getElementById('btn-submit-task');
-            btnSubmit.disabled = false;
-            btnSubmit.textContent = "Adicionar na Agenda (+XP)";
-            
-            atualizarInterface();
-            renderizarStickers();
-        }
+    // ==========================================
+    // 6. NOVO SISTEMA DE BACKUP E RESTAURAÇÃO (.JSON)
+    // ==========================================
 
-        function escutarDadosNuvem(userEmail) {
-            const { doc, onSnapshot } = window.fbModules;
-            onSnapshot(doc(db, "agendas", userEmail), (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    listaDeTarefas = data.tarefas || [];
-                    lixeiraDeTarefas = data.lixeira || [];
-                    listaDeNotas = data.notas || [];
-                    listaDeStickers = data.stickers || [];
-                    userXP = data.xp || 0;
-                    userLevel = data.level || 1;
-                } else {
-                    listaDeTarefas = []; lixeiraDeTarefas = []; listaDeNotas = []; listaDeStickers = [];
-                    userXP = 0; userLevel = 1;
-                }
-                
-                isFirebaseCarregado = true;
-                const btnSubmit = document.getElementById('btn-submit-task');
-                btnSubmit.disabled = false;
-                if (idTarefaEmEdicao !== null) {
-                    btnSubmit.textContent = "Salvar Alterações";
-                } else {
-                    btnSubmit.textContent = "Adicionar na Agenda (+XP)";
-                }
+    // Gera e descarrega um ficheiro de backup das tuas tarefas
+    function exportarBackup() {
+        const tarefas = dbLocalStorage.getTarefas();
+        const dadosTexto = JSON.stringify(tarefas, null, 2);
+        
+        const blob = new Blob([dadosTexto], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const linkTemp = document.createElement('a');
+        linkTemp.href = url;
+        linkTemp.download = `backup_agenda_${new Date().toISOString().split('T')[0]}.json`;
+        
+        document.body.appendChild(linkTemp);
+        linkTemp.click();
+        document.body.removeChild(linkTemp);
+        URL.revokeObjectURL(url);
+    }
 
-                atualizarInterface();
-                renderizarLixeira();
-                atualizarGamificacaoUI();
-                renderizarStickers();
-            });
-        }
+    // Carrega um ficheiro de backup enviado pelo usuário de volta para o sistema
+    function importarBackup(event) {
+        const arquivo = event.target.files[0];
+        if (!arquivo) return;
 
-        async function salvarDadosNaNuvem() {
-            if (!currentUser || !currentUser.email) return;
+        const leitor = new FileReader();
+        leitor.onload = function(e) {
             try {
-                const { doc, setDoc } = window.fbModules;
-                await setDoc(doc(db, "agendas", currentUser.email), {
-                    tarefas: listaDeTarefas,
-                    lixeira: lixeiraDeTarefas,
-                    notas: listaDeNotas,
-                    stickers: listaDeStickers,
-                    xp: userXP,
-                    level: userLevel
-                }, { merge: true });
-            } catch (error) {
-                console.error("Erro ao guardar dados:", error);
+                const tarefasImportadas = JSON.parse(e.target.result);
+                
+                if (Array.isArray(tarefasImportadas)) {
+                    dbLocalStorage.salvarTarefas(tarefasImportadas);
+                    carregarTarefasNaTela();
+                    alert("Backup restaurado com sucesso! As tuas tarefas foram recuperadas para o ecrã.");
+                } else {
+                    alert("Erro: O ficheiro de backup não possui um formato compatível.");
+                }
+            } catch (erro) {
+                alert("Erro ao processar o ficheiro. Escolha o arquivo .json gerado pelo botão de backup.");
             }
-        }
+        };
+        leitor.readAsText(arquivo);
+        event.target.value = ''; // Reseta o seletor de arquivos
+    }
 
-        function startClock() {
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('live-clock').textContent = now.toTimeString().split(' ')[0];
-                document.getElementById('live-date').textContent = formatarDataString(now);
-            }, 1000);
-        }
+    // Disponibiliza as funções na janela global
+    window.renderizarLixeira = renderizarLixeira;
+    window.removerTarefa = removerTarefa;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarTarefasNaTela();
+    });
+</script>
 
-        function carregarImagemFundoArquivo(event) {
-            const file = event.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const url = e.target.result;
-                document.getElementById('sidebar').style.backgroundImage = `url('${url}')`;
-                localStorage.setItem('minha_agenda_sidebar_bg', url);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function carregarImagemFundoUrl(url) {
-            if(url.trim() !== "") {
-                document.getElementById('sidebar').style.backgroundImage = `url('${url.trim()}')`;
-                localStorage.setItem('minha_agenda_sidebar_bg', url.trim());
-            }
-        }
-
-        function removerImagemFundo() {
-            document.getElementById('sidebar').style.backgroundImage = 'none';
-            localStorage.removeItem('minha_agenda_sidebar_bg');
-            document.getElementById('bg-url-input').value = "";
-            document.getElementById('bg-file-upload').value = "";
-        }
-
-        function aplicarFundoSalvo() {
-            const bg = localStorage.getItem('minha_agenda_sidebar_bg');
-            if(bg) {
-                document.getElementById('sidebar').style.backgroundImage = `url('${bg}')`;
-                if(!bg.startsWith('data:')) document.getElementById('bg-url-input').value = bg;
-            }
-        }
-
-        function montarCatalogoEmojis() {
-            const target = document.getElementById('sticker-box-target');
-            let emojis = [];
-            for (let i = 0x1F600; i <= 0x1F64F; i++) emojis.push(String.fromCodePoint(i)); 
-            for (let i = 0x1F490; i <= 0x1F49F; i++) emojis.push(String.fromCodePoint(i)); 
-            for (let i = 0x1F300; i <= 0x1F320; i++) emojis.push(String.fromCodePoint(i)); 
-            let extras = ['🎯','⭐','🔥','🚀','💻','📝','💡','💪','🏋️','🎨','❤️','✨','🍕','👑','💎','🔔'];
-            let combinada = [...extras, ...emojis];
-            
-            target.innerHTML = combinada.map(e => `<span class="sticker-opt" onclick="adicionarSticker('${e}')">${e}</span>`).join('');
-        }
-
-        function adicionarSticker(emoji) {
-            if(!currentUser) { alert("Faça login para colocar adesivos!"); return; }
-            const novoSticker = { id: Date.now(), emoji: emoji, x: 250, y: 250 };
-            listaDeStickers.push(novoSticker);
-            salvarDadosNaNuvem();
-        }
-
-        function deletarSticker(id) {
-            listaDeStickers = listaDeStickers.filter(s => s.id !== id);
-            salvarDadosNaNuvem();
-        }
-
-        function renderizarStickers() {
-            const layer = document.getElementById('stickers-board-layer'); layer.innerHTML = "";
-            listaDeStickers.forEach(s => {
-                const el = document.createElement('div'); el.className = "sticker"; el.style.left = s.x + "px"; el.style.top = s.y + "px";
-                el.innerHTML = `${s.emoji} <button class="btn-del-sticker" onclick="deletarSticker(${s.id})">×</button>`;
-                fazerElementoArrastavel(el, s.id); layer.appendChild(el);
-            });
-        }
-
-        function fazerElementoArrastavel(elmnt, id) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            elmnt.onmousedown = dragMouseDown; elmnt.ontouchstart = dragMouseDown;
-            function dragMouseDown(e) {
-                e = e || window.event; if(e.target.className === 'btn-del-sticker') return;
-                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : e.clientX); 
-                const clientY = e.clientY || (e.touches ? e.touches[0].clientY : e.clientY);
-                pos3 = clientX; pos4 = clientY;
-                document.onmouseup = closeDragElement; document.onmousemove = elementDrag;
-                document.ontouchend = closeDragElement; document.ontouchmove = elementDrag;
-            }
-            function elementDrag(e) {
-                e = e || window.event;
-                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : pos3); 
-                const clientY = e.clientY || (e.touches ? e.touches[0].clientY : pos4);
-                pos1 = pos3 - clientX; pos2 = pos4 - clientY; pos3 = clientX; pos4 = clientY;
-                elmnt.style.top = (elmnt.offsetTop - pos2) + "px"; elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-            }
-            function closeDragElement() {
-                document.onmouseup = null; document.onmousemove = null; document.ontouchend = null; document.ontouchmove = null;
-                listaDeStickers = listaDeStickers.map(st => { if(st.id === id) { st.x = elmnt.offsetLeft; st.y = elmnt.offsetTop; } return st; });
-                salvarDadosNaNuvem();
-            }
-        }
-
-        function abrirModuloNotas() {
-            document.getElementById('notes-modal').classList.add('active');
-            toggleMenu();
-            idNotaEmEdicao = null;
-            document.getElementById('note-title').value = "";
-            document.getElementById('note-body').value = "";
-            document.getElementById('btn-archive-note').style.display = 'none';
-            document.getElementById('btn-delete-note-real').style.display = 'none';
-            renderizarListaDeNotasModulo();
-        }
-
-        function fecharModuloNotas() { document.getElementById('notes-modal').classList.remove('active'); }
-
-        function renderizarListaDeNotasModulo() {
-            const target = document.getElementById('notes-modal-list');
-            if(listaDeNotas.length === 0) { target.innerHTML = `<p style="font-size:12px; opacity:0.6;">Nenhuma nota criada.</p>`; return; }
-            target.innerHTML = "";
-            listaDeNotas.forEach(n => {
-                const isArq = n.arquivada ? true : false;
-                target.insertAdjacentHTML('beforeend', `
-                    <div class="mini-note-item ${isArq ? 'archived-style' : ''}" onclick="carregarNotaParaEdicao(${n.id})">
-                        <strong style="font-size:13px; display:block;">${n.titulo || 'Sem título'}</strong>
-                        <span style="font-size:11px; opacity:0.7;">${n.texto ? n.texto.substring(0, 20) : ''}...</span>
-                        ${isArq ? '<span class="note-badge-archived" style="margin-top:4px; display:inline-block;">Arquivada</span>' : ''}
-                    </div>
-                `);
-            });
-        }
-
-        function carregarNotaParaEdicao(id) {
-            const nota = listaDeNotas.find(n => n.id === id); if(!nota) return;
-            idNotaEmEdicao = id;
-            document.getElementById('note-title').value = nota.titulo;
-            document.getElementById('note-body').value = nota.texto;
-            
-            const archiveBtn = document.getElementById('btn-archive-note');
-            archiveBtn.style.display = 'block';
-            archiveBtn.textContent = nota.arquivada ? "Desarquivar" : "Arquivar";
-            
-            document.getElementById('btn-delete-note-real').style.display = 'block';
-        }
-
-        function salvarNotaMódulo() {
-            if(!currentUser) { alert("Faça login para salvar anotações!"); return; }
-            const tit = document.getElementById('note-title').value.trim();
-            const bod = document.getElementById('note-body').value.trim();
-            if(!bod) { alert("Escreva um texto para salvar!"); return; }
-
-            if(idNotaEmEdicao !== null) {
-                listaDeNotas = listaDeNotas.map(n => { if(n.id === idNotaEmEdicao) { n.titulo = tit || "Nota"; n.texto = bod; } return n; });
-            } else {
-                listaDeNotas.push({ id: Date.now(), titulo: tit || "Nota", texto: bod, arquivada: false });
-            }
-            idNotaEmEdicao = null;
-            document.getElementById('note-title').value = ""; document.getElementById('note-body').value = "";
-            document.getElementById('btn-archive-note').style.display = 'none'; document.getElementById('btn-delete-note-real').style.display = 'none';
-            salvarDadosNaNuvem();
-            renderizarListaDeNotasModulo();
-        }
-
-        function alternarArquivamentoNota() {
-            if(idNotaEmEdicao === null) return;
-            listaDeNotas = listaDeNotas.map(n => { if(n.id === idNotaEmEdicao) n.arquivada = !n.arquivada; return n; });
-            idNotaEmEdicao = null;
-            document.getElementById('note-title').value = ""; document.getElementById('note-body').value = "";
-            document.getElementById('btn-archive-note').style.display = 'none'; document.getElementById('btn-delete-note-real').style.display = 'none';
-            salvarDadosNaNuvem();
-            renderizarListaDeNotasModulo();
-        }
-
-        function deletarNotaMódulo() {
-            if(idNotaEmEdicao === null) return;
-            listaDeNotas = listaDeNotas.filter(n => n.id !== idNotaEmEdicao);
-            idNotaEmEdicao = null;
-            document.getElementById('note-title').value = ""; document.getElementById('note-body').value = "";
-            document.getElementById('btn-archive-note').style.display = 'none'; document.getElementById('btn-delete-note-real').style.display = 'none';
-            salvarDadosNaNuvem();
-            renderizarListaDeNotasModulo();
-        }
-
-        function prepararEdicaoTarefa(id) {
-            const tarefa = listaDeTarefas.find(t => t.id === id); if (!tarefa) return;
-            idTarefaEmEdicao = id;
-            
-            document.getElementById('task-name').value = tarefa.titulo;
-            document.getElementById('task-frequency').value = tarefa.tipo;
-            document.getElementById('task-category').value = tarefa.categoria || "azul";
-            document.getElementById('task-icon').value = tarefa.icone || "fa-circle-check";
-            document.getElementById('task-date-input').value = tarefa.data;
-            document.getElementById('task-time').value = tarefa.hora;
-            
-            if (tarefa.subtarefas && tarefa.subtarefas.length > 0) {
-                document.getElementById('task-subtasks').value = tarefa.subtarefas.map(s => s.texto).join(', ');
-            } else {
-                document.getElementById('task-subtasks').value = "";
-            }
-
-            const btnSubmit = document.getElementById('btn-submit-task'); btnSubmit.textContent = "Salvar Alterações"; btnSubmit.classList.add('btn-edit-mode');
-            document.getElementById('form-action-title').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editar Tarefa Completamente`;
-            window.scrollTo({ top: document.getElementById('main-task-form').offsetTop, behavior: 'smooth' });
-        }
-
-        async function salvarTarefa() {
-            if(!currentUser) { alert("Faça login para salvar as suas tarefas!"); return; }
-            if(!isFirebaseCarregado) { alert("Aguarde a sincronização inicial terminar!"); return; }
-            
-            const nameInput = document.getElementById('task-name'); const subInput = document.getElementById('task-subtasks'); const nome = nameInput.value.trim();
-            if (!nome) { alert("Preencha a descrição!"); return; }
-
-            let subtarefasFiltradas = subInput.value.split(',').map(s => s.trim()).filter(s => s.length > 0).map((s, idx) => ({ id: idx, texto: s, concluida: false }));
-
-            if (idTarefaEmEdicao !== null) {
-                listaDeTarefas = listaDeTarefas.map(t => { 
-                    if (t.id === idTarefaEmEdicao) { 
-                        t.titulo = nome; t.tipo = document.getElementById('task-frequency').value; 
-                        t.categoria = document.getElementById('task-category').value; t.icone = document.getElementById('task-icon').value; 
-                        t.data = document.getElementById('task-date-input').value; t.hora = document.getElementById('task-time').value; 
-                        t.subtarefas = subtarefasFiltradas; 
-                    } return t; 
-                });
-                idTarefaEmEdicao = null; 
-                const btnSubmit = document.getElementById('btn-submit-task'); btnSubmit.textContent = "Adicionar na Agenda (+XP)"; btnSubmit.classList.remove('btn-edit-mode');
-                document.getElementById('form-action-title').innerHTML = `<i class="fa-solid fa-plus"></i> Painel de Agendamento Inteligente`;
-            } else {
-                listaDeTarefas.push({ id: Date.now(), titulo: nome, tipo: document.getElementById('task-frequency').value, categoria: document.getElementById('task-category').value, icone: document.getElementById('task-icon').value, data: document.getElementById('task-date-input').value, hora: document.getElementById('task-time').value || "Sem hora", concluida: false, subtarefas: subtarefasFiltradas });
-                adicionarXP(15);
-            }
-            nameInput.value = ""; subInput.value = ""; 
-            
-            atualizarInterface();
-            await salvarDadosNaNuvem();
-        }
-
-        function exportarParaExcel() {
-            if (listaDeTarefas.length === 0) { alert("Sem tarefas para exportar!"); return; }
-            const dados = listaDeTarefas.map(t => ({ "ID": t.id, "Tarefa": t.titulo, "Frequência": t.tipo, "Categoria": t.categoria, "Data": t.data, "Horário": t.hora, "Status": t.concluida ? 'Concluída' : 'Pendente' }));
-            const livro = XLSX.utils.book_new(); const planilha = XLSX.utils.json_to_sheet(dados); XLSX.utils.book_append_sheet(livro, planilha, "Tarefas"); XLSX.writeFile(livro, "agenda_produtiva.xlsx");
-        }
-
-        function editarNomePomodoro() { const n = prompt("Nome da atividade:", pomoNomeCustomizado); if(n && n.trim()) { pomoNomeCustomizado = n.trim(); document.getElementById('pomo-label').innerHTML = `<i class="fa-solid fa-brain"></i> ${pomoNomeCustomizado}`; } }
-        function editarTempoPomodoro() { const t = prompt("Minutos:", pomoMinutosPadrao); const m = parseInt(t); if(!isNaN(m) && m > 0) { pomoMinutosPadrao = m; pomoTempoRestante = m * 60; document.getElementById('pomo-time').textContent = `${String(m).padStart(2, '0')}:00`; } }
-        function togglePomodoro() {
-            const btn = document.getElementById('pomo-start-btn'); if (pomoInterval) { clearInterval(pomoInterval); pomoInterval = null; btn.textContent = "Iniciar"; } 
-            else { btn.textContent = "Pausar"; pomoInterval = setInterval(() => { if (pomoTempoRestante > 0) { pomoTempoRestante--; document.getElementById('pomo-time').textContent = `${String(Math.floor(pomoTempoRestante / 60)).padStart(2, '0')}:${String(pomoTempoRestante % 60).padStart(2, '0')}`; } else { clearInterval(pomoInterval); pomoInterval = null; togglePomodoro(); } }, 1000); }
-        }
-
-        function renderizarTarefas() {
-            const target = document.getElementById('tasks-list'); const currentFmt = formatarDataString(dataAtual); const filtradas = listaDeTarefas.filter(t => t.data === currentFmt || t.tipo === 'Fixa');
-            
-            if (!isFirebaseCarregado) {
-                target.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i> A carregar da nuvem...</div>`;
-                return;
-            }
-            
-            if (filtradas.length === 0) { target.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.6;">Nenhuma atividade agendada para hoje.</div>`; return; } target.innerHTML = "";
-            filtradas.forEach(t => {
-                let subHtml = ""; if (t.subtarefas && t.subtarefas.length > 0) { subHtml = `<div class="subtasks-wrapper">` + t.subtarefas.map(s => `<div class="subtask-row ${s.concluida ? 'done' : ''}"><input type="checkbox" ${s.concluida ? 'checked' : ''} onclick="alternarSubtarefa(${t.id}, ${s.id})"> <span>${s.texto}</span></div>`).join('') + `</div>`; }
-                target.insertAdjacentHTML('beforeend', `<div class="task-item cor-${t.categoria || 'azul'} ${t.concluida ? 'completed' : ''}"><div class="task-top-wrapper"><div><button class="check-btn" onclick="alternarConclusaoTarefa(${t.id})"><i class="fa-solid fa-check"></i></button> <span class="task-title-text" style="font-weight:bold; margin-left:8px;"><i class="fa-solid ${t.icone || 'fa-circle-check'}"></i> [${t.hora}] ${t.titulo}</span></div><div class="task-actions-btns"><button class="btn-edit-task" onclick="prepararEdicaoTarefa(${t.id})"><i class="fa-solid fa-pen-to-square"></i></button><button style="background:none; border:none; color:#e74c3c; cursor:pointer;" onclick="moverParaLixeira(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>${subHtml}</div>`);
-            });
-        }
-
-        function mudarTema(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('minha_agenda_tema', t); }
-        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
-        function switchTab(t) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.getElementById(`tab-link-${t}`).classList.add('active'); document.getElementById(`tab-content-${t}`).classList.add('active'); }
-        function alterarModoVisualizacao(m) { modoVisualizacao = m; document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active')); document.getElementById(`btn-view-${m}`).classList.add('active'); document.getElementById('container-visao-semana').style.display = m === 'semana' ? 'block' : 'none'; document.getElementById('container-visao-mes').style.display = m === 'mes' ? 'block' : 'none'; atualizarInterface(); }
-        function navegarData(dir) { if (modoVisualizacao === 'dia') dataAtual.setDate(dataAtual.getDate() + dir); else if (modoVisualizacao === 'semana') dataAtual.setDate(dataAtual.getDate() + (dir * 7)); else if (modoVisualizacao === 'mes') dataAtual.setMonth(dataAtual.getMonth() + dir); atualizarInterface(); }
-        function formatarDataString(dateObj) { return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`; }
-        
-        function selecionarDataDireta(iso) { 
-            dataAtual = converterIsoParaDataLocal(iso); 
-            atualizarInterface(); 
-        }
-        
-        function adicionarXP(q) { 
-            userXP += q; 
-            if (userXP >= 100) { userXP -= 100; userLevel++; } 
-            atualizarGamificacaoUI();
-        }
-        function atualizarGamificacaoUI() { document.getElementById('user-level').textContent = userLevel; document.getElementById('xp-fill-bar').style.width = `${userXP}%`; }
-        
-        async function alternarConclusaoTarefa(id) { 
-            listaDeTarefas = listaDeTarefas.map(t => { if (t.id === id) { t.concluida = !t.concluida; if(t.concluida) { adicionarXP(20); if(t.subtarefas) t.subtarefas.forEach(s => s.concluida = true); } } return t; }); 
-            atualizarInterface();
-            await salvarDadosNaNuvem();
-        }
-        async function alternarSubtarefa(tId, sId) { 
-            listaDeTarefas = listaDeTarefas.map(t => { if (t.id === tId) { t.subtarefas = t.subtarefas.map(s => { if (s.id === sId) { s.concluida = !s.concluida; if(s.concluida) adicionarXP(5); } return s; }); } return t; }); 
-            atualizarInterface();
-            await salvarDadosNaNuvem();
-        }
-        
-        async function moverParaLixeira(id) { const item = listaDeTarefas.find(t => t.id === id); if (item) { lixeiraDeTarefas.push(item); listaDeTarefas = listaDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); } }
-        async function restaurarTarefa(id) { const item = lixeiraDeTarefas.find(t => t.id === id); if (item) { listaDeTarefas.push(item); lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); } }
-        async function excluirDefinitivo(id) { lixeiraDeTarefas = lixeiraDeTarefas.filter(t => t.id !== id); atualizarInterface(); await salvarDadosNaNuvem(); }
-        
-        function renderizarLixeira() { const container = document.getElementById('trash-list-target'); document.getElementById('trash-count-badge').textContent = lixeiraDeTarefas.length; if (lixeiraDeTarefas.length === 0) { container.innerHTML = `<div style="font-size:12px; text-align:center; opacity:0.6;">Lixeira vazia.</div>`; return; } container.innerHTML = ""; lixeiraDeTarefas.forEach(t => { container.insertAdjacentHTML('beforeend', `<div class="trash-item" style="display:flex; justify-content:between; align-items:center;"><div><strong>${t.titulo}</strong></div><div><button style="color:#2ecc71; background:none; border:none; margin-right:8px; cursor:pointer;" onclick="restaurarTarefa(${t.id})"><i class="fa-solid fa-rotate-left"></i></button><button style="color:#e74c3c; background:none; border:none; cursor:pointer;" onclick="excluirDefinitivo(${t.id})"><i class="fa-solid fa-trash-can"></i></button></div></div>`); }); }
-        function atualizarEstatisticasMenu() { document.getElementById('stat-total').textContent = listaDeTarefas.length; let conc = listaDeTarefas.filter(t => t.concluida).length; document.getElementById('stat-concluidas').textContent = conc; document.getElementById('stat-pendentes').textContent = listaDeTarefas.length - conc; }
-        
-        function atualizarInterface() {
-            const dataFmt = formatarDataString(dataAtual); const diasSemana = ["Domingo", "Segunda-Feira", "Terça-Feira", "Quarta-Feira", "Quinta-Feira", "Sexta-Feira", "Sábado"]; const mesesAno = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            document.getElementById('task-date-input').value = dataFmt;
-            if (modoVisualizacao === 'dia') { document.getElementById('day-of-week-label').style.display = 'block'; document.getElementById('day-of-week-label').textContent = diasSemana[dataAtual.getDay()]; document.getElementById('display-date').textContent = dataFmt; } 
-            else if (modoVisualizacao === 'semana') { document.getElementById('day-of-week-label').style.display = 'none'; document.getElementById('display-date').textContent = `Semana de ${dataFmt}`; renderizarGradeSemana(); } 
-            else if (modoVisualizacao === 'mes') { document.getElementById('day-of-week-label').style.display = 'none'; document.getElementById('display-date').textContent = `${mesesAno[dataAtual.getMonth()]} de ${dataAtual.getFullYear()}`; renderizarGradeMes(); }
-            renderizarTarefas(); atualizarEstatisticasMenu(); renderizarLixeira();
-        }
-
-        function renderizarGradeSemana() {
-            const grid = document.getElementById('week-grid-target'); grid.innerHTML = ""; let dInicio = new Date(dataAtual); dInicio.setDate(dInicio.getDate() - dInicio.getDay()); const shortDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-            for (let i = 0; i < 7; i++) { let dLoop = new Date(dInicio); dLoop.setDate(dInicio.getDate() + i); let sDia = formatarDataString(dLoop); let count = listaDeTarefas.filter(t => t.data === sDia || t.tipo === 'Fixa').length; grid.insertAdjacentHTML('beforeend', `<div class="week-day-card ${sDia === formatarDataString(dataAtual) ? 'selected' : ''}" onclick="selecionarDataDireta('${dLoop.toISOString()}')"><div><strong>${shortDays[i]}</strong></div><div>${dLoop.getDate()}</div>${count > 0 ? `<span style="background:#3498db; color:white; font-size:9px; padding:2px 4px; border-radius:8px;">${count}</span>` : ''}</div>`); }
-        }
-
-        function renderizarGradeMes() {
-            const grid = document.getElementById('month-grid-target'); grid.innerHTML = ""; ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach(d => grid.insertAdjacentHTML('beforeend', `<div class="month-grid-header">${d}</div>`)); let pDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1); let dGrid = new Date(pDia); dGrid.setDate(dGrid.getDate() - pDia.getDay());
-            for (let k = 0; k < 35; k++) { let cell = new Date(dGrid); cell.setDate(dGrid.getDate() + k); let sDia = formatarDataString(cell); let count = listaDeTarefas.filter(t => t.data === sDia || t.tipo === 'Fixa').length; grid.insertAdjacentHTML('beforeend', `<div class="month-cell ${cell.getMonth() !== dataAtual.getMonth() ? 'other-month' : ''} ${sDia === formatarDataString(dataAtual) ? 'current-active' : ''}" onclick="selecionarDataDireta('${cell.toISOString()}')"><div><strong>${cell.getDate()}</strong></div><div>${count > 0 ? `<span class="month-task-indicator"></span>` : ''}</div></div>`); }
-        }
-
-        function exportarDados() { const backup = { tarefas: listaDeTarefas, lixeira: lixeiraDeTarefas, notas: listaDeNotas, xp: userXP, level: userLevel, stickers: listaDeStickers }; const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup)); const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "agenda_backup.json"); document.body.appendChild(a); a.click(); a.remove(); }
-        function importarDados(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async function(evt) { try { const d = JSON.parse(evt.target.result); if (d.tarefas) { listaDeTarefas = d.tarefas; lixeiraDeTarefas = d.lixeira || []; listaDeNotas = d.notas || []; listaDeStickers = d.stickers || []; userXP = d.xp || 0; userLevel = d.level || 1; atualizarInterface(); await salvarDadosNaNuvem(); } } catch (err) { alert("Erro ao importar dados!"); } }; reader.readAsText(file); }
-    </script>
 </body>
 </html>
