@@ -208,6 +208,7 @@
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
         .form-col { flex: 1; min-width: 140px; }
         .btn-add { width: 100%; background-color: #2a9d8f; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .btn-add:disabled { background-color: #7f8c8d; cursor: not-allowed; }
         .btn-edit-mode { background-color: #e67e22 !important; }
 
         .week-view-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -430,7 +431,7 @@
             <input type="text" class="input-text" id="task-subtasks" placeholder="Ex: Aquecimento, Agachamento, Cardio">
         </div>
 
-        <button type="button" class="btn-add" id="btn-submit-task" onclick="salvarTarefa()">Adicionar na Agenda (+XP)</button>
+        <button type="button" class="btn-add" id="btn-submit-task" onclick="salvarTarefa()" disabled>A carregar base de dados...</button>
     </main>
 
     <section class="tasks-container">
@@ -449,6 +450,7 @@
         };
 
         let db, auth, currentUser = null;
+        let isFirebaseCarregado = false;
         let dataAtual = new Date("2026-05-22T00:00:00");
         let modoVisualizacao = 'dia';
         let idTarefaEmEdicao = null;
@@ -476,6 +478,7 @@
             aplicarFundoSalvo();
             startClock();
             montarCatalogoEmojis();
+            atualizarInterface();
 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
@@ -484,6 +487,7 @@
                     escutarDadosNuvem(user.email);
                 } else {
                     currentUser = null;
+                    isFirebaseCarregado = true;
                     resetarDadosInterfaceParaDeslogado();
                 }
             });
@@ -520,6 +524,11 @@
             `;
             listaDeTarefas = []; lixeiraDeTarefas = []; listaDeNotas = []; listaDeStickers = [];
             userXP = 0; userLevel = 1;
+            
+            const btnSubmit = document.getElementById('btn-submit-task');
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = "Adicionar na Agenda (+XP)";
+            
             atualizarInterface();
             renderizarStickers();
         }
@@ -539,6 +548,16 @@
                     listaDeTarefas = []; lixeiraDeTarefas = []; listaDeNotas = []; listaDeStickers = [];
                     userXP = 0; userLevel = 1;
                 }
+                
+                isFirebaseCarregado = true;
+                const btnSubmit = document.getElementById('btn-submit-task');
+                btnSubmit.disabled = false;
+                if (idTarefaEmEdicao !== null) {
+                    btnSubmit.textContent = "Salvar Alterações";
+                } else {
+                    btnSubmit.textContent = "Adicionar na Agenda (+XP)";
+                }
+
                 atualizarInterface();
                 renderizarLixeira();
                 atualizarGamificacaoUI();
@@ -547,10 +566,7 @@
         }
 
         async function salvarDadosNaNuvem() {
-            if (!currentUser || !currentUser.email) {
-                console.log("Nenhum usuário logado para sincronizar na nuvem.");
-                return;
-            }
+            if (!currentUser || !currentUser.email) return;
             try {
                 const { doc, setDoc } = window.fbModules;
                 await setDoc(doc(db, "agendas", currentUser.email), {
@@ -561,10 +577,9 @@
                     xp: userXP,
                     level: userLevel
                 }, { merge: true });
-                console.log("Dados sincronizados com o Firebase com sucesso!");
+                console.log("Dados sincronizados com sucesso!");
             } catch (error) {
-                console.error("Erro crítico ao salvar no Firebase:", error);
-                alert("Erro ao sincronizar com o servidor: " + error.message);
+                console.error("Erro ao guardar dados:", error);
             }
         }
 
@@ -770,7 +785,9 @@
         }
 
         async function salvarTarefa() {
-            if(!currentUser) { alert("Faça login para salvar suas tarefas!"); return; }
+            if(!currentUser) { alert("Faça login para salvar as suas tarefas!"); return; }
+            if(!isFirebaseCarregado) { alert("Aguarde a sincronização inicial terminar!"); return; }
+            
             const nameInput = document.getElementById('task-name'); const subInput = document.getElementById('task-subtasks'); const nome = nameInput.value.trim();
             if (!nome) { alert("Preencha a descrição!"); return; }
 
@@ -813,6 +830,12 @@
 
         function renderizarTarefas() {
             const target = document.getElementById('tasks-list'); const currentFmt = formatarDataString(dataAtual); const filtradas = listaDeTarefas.filter(t => t.data === currentFmt || t.tipo === 'Fixa');
+            
+            if (!isFirebaseCarregado) {
+                target.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.6;"><i class="fa-solid fa-spinner fa-spin"></i> A carregar da nuvem...</div>`;
+                return;
+            }
+            
             if (filtradas.length === 0) { target.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.6;">Nenhuma atividade agendada para hoje.</div>`; return; } target.innerHTML = "";
             filtradas.forEach(t => {
                 let subHtml = ""; if (t.subtarefas && t.subtarefas.length > 0) { subHtml = `<div class="subtasks-wrapper">` + t.subtarefas.map(s => `<div class="subtask-row ${s.concluida ? 'done' : ''}"><input type="checkbox" ${s.concluida ? 'checked' : ''} onclick="alternarSubtarefa(${t.id}, ${s.id})"> <span>${s.texto}</span></div>`).join('') + `</div>`; }
